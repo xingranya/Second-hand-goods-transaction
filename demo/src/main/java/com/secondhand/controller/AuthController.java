@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/auth")
-
+public class AuthController {
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 
     @Autowired
     private UserService userService;
+    
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest authRequest) {
         try {
