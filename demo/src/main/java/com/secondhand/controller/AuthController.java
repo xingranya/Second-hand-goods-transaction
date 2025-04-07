@@ -1,7 +1,7 @@
 package com.secondhand.controller;
 
-import com.secondhand.dto.AuthRequest;
-import com.secondhand.dto.AuthResponse;
+import com.secondhand.dto.request.AuthRequest;
+import com.secondhand.dto.response.AuthResponse;
 import com.secondhand.entity.User;
 import com.secondhand.security.JwtTokenUtil;
 import com.secondhand.service.UserService;
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/auth")
-public class AuthController {
+
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -31,12 +31,15 @@ public class AuthController {
 
     @Autowired
     private UserService userService;
-
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest authRequest) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword())
-        );
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword())
+            );
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Invalid username or password");
+        }
 
         final UserDetails userDetails = userDetailsService.loadUserByUsername(authRequest.getUsername());
         final String token = jwtTokenUtil.generateToken(userDetails);
