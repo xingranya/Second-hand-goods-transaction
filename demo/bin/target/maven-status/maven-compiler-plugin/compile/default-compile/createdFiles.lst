@@ -1,0 +1,10 @@
+com\secondhand\repository\MessageRepository.class
+com\secondhand\entity\Transaction.class
+com\secondhand\entity\Product.class
+com\secondhand\service\MessageService.class
+com\secondhand\repository\TransactionRepository.class
+com\secondhand\entity\User.class
+com\secondhand\repository\UserRepository.class
+com\secondhand\service\impl\MessageServiceImpl.class
+com\secondhand\repository\ProductRepository.class
+com\secondhand\entity\Message.class
