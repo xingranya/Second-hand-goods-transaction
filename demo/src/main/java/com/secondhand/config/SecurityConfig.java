@@ -39,10 +39,7 @@ public class SecurityConfig {
             .cors().and()
             .csrf().disable()
             .authorizeRequests(auth -> auth
-                .antMatchers("/api/auth/**").permitAll()
-                .antMatchers("/api/products").permitAll()
-                .antMatchers("/api/products/search").permitAll()
-                .antMatchers("/api/products/{id}").permitAll()
+                .antMatchers("/", "/api/auth/**", "/api/products", "/api/products/search", "/api/products/{id}").permitAll()
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
