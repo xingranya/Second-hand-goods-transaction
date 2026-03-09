@@ -1,0 +1,135 @@
+:root {
+  --bg: #f6f8ff;
+  --surface: #ffffff;
+  --surface-soft: #eef2ff;
+  --text: #1f2a44;
+  --muted: #64748b;
+  --primary: #2563eb;
+  --primary-strong: #1d4ed8;
+  --accent: #f97316;
+  --success: #16a34a;
+  --border: #dbe4ff;
+  --shadow: 0 12px 28px rgba(29, 78, 216, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: "Public Sans", sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at top left, #e0edff 0%, rgba(224, 237, 255, 0) 48%),
+    radial-gradient(circle at top right, #ffe6d6 0%, rgba(255, 230, 214, 0) 38%),
+    var(--bg);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-container {
+  width: min(1180px, 100% - 32px);
+  margin: 0 auto;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  background: var(--surface-soft);
+  color: var(--primary);
+}
+
+.btn {
+  border: 0;
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  color: #fff;
+  background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+}
+
+.btn-primary:hover {
+  filter: brightness(1.04);
+  transform: translateY(-1px);
+}
+
+.btn-accent {
+  color: #fff;
+  background: linear-gradient(135deg, #ff8b3d, var(--accent));
+}
+
+.btn-muted {
+  background: var(--surface-soft);
+  color: var(--muted);
+}
+
+.input {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: #fff;
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.grid-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.material-symbols-outlined {
+  font-size: 20px;
+  vertical-align: middle;
+}
+
+@media (max-width: 900px) {
+  .page-container {
+    width: min(100% - 20px, 100%);
+  }
+}
