@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Student Identity Verification</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2563eb",
+                        "background-light": "#f8fafc",
+                        "background-dark": "#0f172a",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "1rem",
+                        "2xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Public Sans', sans-serif;
+        }
+        .bg-gradient-mesh {
+            background-color: #f8fafc;
+            background-image: radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.05) 0px, transparent 50%),
+                              radial-gradient(at 100% 100%, rgba(37, 99, 235, 0.05) 0px, transparent 50%);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen font-display">
+<div class="relative flex min-h-screen w-full flex-col items-center justify-center p-4 md:p-8 bg-gradient-mesh">
+<!-- Main Verification Card -->
+<div class="w-full max-w-2xl bg-white dark:bg-slate-900 shadow-xl rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800">
+<!-- Header Section -->
+<div class="bg-primary/5 dark:bg-primary/10 px-8 pt-10 pb-8 text-center border-b border-slate-100 dark:border-slate-800">
+<div class="mx-auto w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-white text-4xl">verified_user</span>
+</div>
+<h1 class="text-3xl font-bold text-slate-900 dark:text-white mb-4">验证您的学生身份</h1>
+<p class="text-slate-600 dark:text-slate-400 max-w-md mx-auto">完成验证以加入专属校园社区，开启安全交易之旅。</p>
+<!-- Benefits List -->
+<div class="flex flex-wrap justify-center gap-4 mt-8">
+<div class="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-800 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm">
+<span class="material-symbols-outlined text-primary text-xl">handshake</span>
+<span class="text-sm font-semibold text-slate-700 dark:text-slate-300">建立信任</span>
+</div>
+<div class="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-800 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm">
+<span class="material-symbols-outlined text-primary text-xl">rocket_launch</span>
+<span class="text-sm font-semibold text-slate-700 dark:text-slate-300">解锁功能</span>
+</div>
+<div class="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-800 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm">
+<span class="material-symbols-outlined text-primary text-xl">workspace_premium</span>
+<span class="text-sm font-semibold text-slate-700 dark:text-slate-300">校园徽章</span>
+</div>
+</div>
+</div>
+<!-- Selection Area -->
+<div class="p-8 space-y-4">
+<h2 class="text-lg font-bold text-slate-800 dark:text-slate-200 mb-2">选择认证方式</h2>
+<!-- Method 1: Email -->
+<div class="group relative flex items-center gap-4 p-5 rounded-xl border-2 border-slate-100 dark:border-slate-800 hover:border-primary/50 dark:hover:border-primary/50 transition-all cursor-pointer bg-slate-50/50 dark:bg-slate-800/30">
+<div class="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">alternate_email</span>
+</div>
+<div class="flex-grow">
+<h3 class="text-base font-bold text-slate-900 dark:text-white leading-tight">校园邮箱认证</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400">快速自动 • 立即验证</p>
+</div>
+<button class="flex-shrink-0 bg-primary hover:bg-primary/90 text-white px-5 py-2 rounded-lg font-bold text-sm transition-colors">选择</button>
+</div>
+<!-- Method 2: ID Card -->
+<div class="group relative flex items-center gap-4 p-5 rounded-xl border-2 border-slate-100 dark:border-slate-800 hover:border-primary/50 dark:hover:border-primary/50 transition-all cursor-pointer bg-slate-50/50 dark:bg-slate-800/30">
+<div class="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">badge</span>
+</div>
+<div class="flex-grow">
+<h3 class="text-base font-bold text-slate-900 dark:text-white leading-tight">上传学生证照片</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400">人工审核 • 1-2 个工作日</p>
+</div>
+<button class="flex-shrink-0 bg-primary hover:bg-primary/90 text-white px-5 py-2 rounded-lg font-bold text-sm transition-colors">选择</button>
+</div>
+<!-- Method 3: CHSI -->
+<div class="group relative flex items-center gap-4 p-5 rounded-xl border-2 border-slate-100 dark:border-slate-800 hover:border-primary/50 dark:hover:border-primary/50 transition-all cursor-pointer bg-slate-50/50 dark:bg-slate-800/30">
+<div class="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">qr_code_scanner</span>
+</div>
+<div class="flex-grow">
+<h3 class="text-base font-bold text-slate-900 dark:text-white leading-tight">学信网验证码</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400">标准化 • 安全第三方校验</p>
+</div>
+<button class="flex-shrink-0 bg-primary hover:bg-primary/90 text-white px-5 py-2 rounded-lg font-bold text-sm transition-colors">立即验证</button>
+</div>
+</div>
+<!-- Security Badge Footer -->
+<div class="p-6 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 flex items-center justify-center gap-3">
+<span class="material-symbols-outlined text-slate-400 text-xl">encrypted</span>
+<p class="text-xs text-slate-500 dark:text-slate-400 font-medium text-center">您的数据已加密，仅用于校园身份验证。 <a class="text-primary hover:underline ml-1" href="#">隐私政策</a></p>
+</div>
+</div>
+<!-- Secondary Info (Outside Card) -->
+<div class="mt-8 text-center">
+<p class="text-sm text-slate-500 dark:text-slate-500">需要帮助？ <a class="font-semibold text-primary/80 hover:text-primary" href="#">联系校园客服</a></p>
+</div>
+</div>
+</body></html>
