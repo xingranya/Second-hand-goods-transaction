@@ -1,6 +1,10 @@
 <template>
   <section class="page-container verify-page">
-    <form class="card form" @submit.prevent="submit">
+    <article v-if="!authed" class="card form">
+      <h2>学生实名认证</h2>
+      <p class="hint">当前未登录，请先登录后再进行实名认证。</p>
+    </article>
+    <form v-else class="card form" @submit.prevent="submit">
       <h2>学生实名认证</h2>
       <label>
         <span>姓名</span>
@@ -25,9 +29,11 @@
 <script setup>
 import { reactive, ref } from "vue";
 import { useUserStore } from "@/stores/user";
+import { hasToken } from "@/api/auth";
 
 const userStore = useUserStore();
 const result = ref("");
+const authed = hasToken();
 const form = reactive({
   name: "",
   studentNo: "",
@@ -71,5 +77,10 @@ label {
 .result {
   margin: 0;
   color: var(--success);
+}
+
+.hint {
+  margin: 0;
+  color: var(--muted);
 }
 </style>

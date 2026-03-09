@@ -9,6 +9,7 @@ import WantedPage from "@/views/WantedPage.vue";
 import OrderPage from "@/views/OrderPage.vue";
 import ProfilePage from "@/views/ProfilePage.vue";
 import VerifyPage from "@/views/VerifyPage.vue";
+import LoginPage from "@/views/LoginPage.vue";
 import NotFoundPage from "@/views/NotFoundPage.vue";
 
 const routes = [
@@ -24,7 +25,8 @@ const routes = [
       { path: "wanted", name: "wanted", component: WantedPage },
       { path: "order/:id", name: "order", component: OrderPage },
       { path: "profile", name: "profile", component: ProfilePage },
-      { path: "verify", name: "verify", component: VerifyPage }
+      { path: "verify", name: "verify", component: VerifyPage },
+      { path: "login", name: "login", component: LoginPage }
     ]
   },
   { path: "/:pathMatch(.*)*", name: "notFound", component: NotFoundPage }

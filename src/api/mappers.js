@@ -7,27 +7,68 @@ function pick(obj, keys, fallback = "") {
   return fallback;
 }
 
+function normalizeImages(raw) {
+  const list = pick(raw, ["images", "imageList", "imgList", "pictureList"], null);
+  if (Array.isArray(list) && list.length) {
+    return list;
+  }
+  const imageUrl = pick(raw, ["imageUrl", "cover", "image"], "");
+  return imageUrl ? [imageUrl] : [];
+}
+
+function normalizeTags(raw) {
+  const tags = pick(raw, ["tags", "tagList", "labels"], null);
+  if (Array.isArray(tags)) {
+    return tags;
+  }
+  const category = pick(raw, ["category"], "");
+  return category ? [category] : [];
+}
+
+function normalizeOrderStatus(status) {
+  const map = {
+    PENDING: "已下单",
+    COMPLETED: "待评价",
+    CANCELLED: "已取消"
+  };
+  return map[status] || status || "已下单";
+}
+
 export function mapProduct(raw = {}) {
+  const seller = pick(raw, ["seller"], {});
   return {
     id: String(pick(raw, ["id", "productId", "goodsId", "commodityId"], "")),
     title: pick(raw, ["title", "name", "goodsName", "productName"], "未命名商品"),
     price: Number(pick(raw, ["price", "currentPrice", "sellPrice", "secondPrice"], 0)),
     originPrice: Number(pick(raw, ["originPrice", "originalPrice", "purchasePrice"], 0)),
     condition: pick(raw, ["condition", "quality", "goodsStatus"], "未知成色"),
-    campus: pick(raw, ["campus", "campusName", "location", "schoolArea"], "主校区"),
-    images: pick(raw, ["images", "imageList", "imgList", "pictureList"], []),
-    tags: pick(raw, ["tags", "tagList", "labels"], []),
+    campus: pick(raw, ["campus", "campusName", "location", "schoolArea", "school"], "主校区"),
+    images: normalizeImages(raw),
+    tags: normalizeTags(raw),
     publishTime: pick(raw, ["publishTime", "createdAt", "createTime", "gmtCreate"], ""),
-    sellerId: String(pick(raw, ["sellerId", "userId", "publisherId", "ownerId"], ""))
+    sellerId: String(pick(raw, ["sellerId", "userId", "publisherId", "ownerId", "seller.id"], seller?.id || "")),
+    seller: {
+      id: seller?.id || "",
+      name: seller?.name || seller?.username || "未知卖家",
+      credit: seller?.credit ?? 0
+    },
+    description: pick(raw, ["description", "content", "remark"], "")
   };
 }
 
 export function mapOrder(raw = {}) {
+  const amount = Number(pick(raw, ["totalAmount", "amount", "payAmount"], 0));
+  const items = pick(raw, ["items", "orderItems"], []).map((item, index) => ({
+    id: String(pick(item, ["id", "productId"], `${index}`)),
+    title: pick(item, ["title", "name", "productName"], "未命名商品"),
+    count: Number(pick(item, ["count", "quantity"], 1)),
+    price: Number(pick(item, ["price", "unitPrice"], 0))
+  }));
   return {
     id: String(pick(raw, ["id", "orderId"], "")),
-    status: pick(raw, ["status", "orderStatus", "stateName"], "已下单"),
-    items: pick(raw, ["items", "orderItems"], []),
-    totalAmount: Number(pick(raw, ["totalAmount", "amount", "payAmount"], 0)),
+    status: normalizeOrderStatus(pick(raw, ["status", "orderStatus", "stateName"], "已下单")),
+    items,
+    totalAmount: amount,
     buyer: pick(raw, ["buyer"], {}),
     seller: pick(raw, ["seller"], {}),
     payMethod: pick(raw, ["payMethod", "paymentMethod", "payTypeName"], "平台担保"),

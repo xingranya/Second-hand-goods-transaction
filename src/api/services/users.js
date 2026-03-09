@@ -1,32 +1,17 @@
-import { callWithFallback } from "@/api/fallback";
 import { userEndpoints } from "@/api/endpoints";
 import { requestWithCandidates, unwrapPayload } from "@/api/compat";
 import { setToken } from "@/api/auth";
-import { mockCurrentUser } from "@/mock/users";
 
 export async function fetchCurrentUser() {
-  return callWithFallback(
-    async () => {
-      const { data } = await requestWithCandidates(userEndpoints.me);
-      return unwrapPayload(data);
-    },
-    async () => mockCurrentUser
-  );
+  const { data } = await requestWithCandidates(userEndpoints.me);
+  return unwrapPayload(data);
 }
 
 export async function submitVerify(payload) {
-  return callWithFallback(
-    async () => {
-      const { data } = await requestWithCandidates(
-        userEndpoints.verify.map((item) => ({ ...item, data: payload }))
-      );
-      return unwrapPayload(data);
-    },
-    async () => ({
-      success: true,
-      message: "演示模式下已标记为提交成功"
-    })
+  const { data } = await requestWithCandidates(
+    userEndpoints.verify.map((item) => ({ ...item, data: payload }))
   );
+  return unwrapPayload(data);
 }
 
 export async function loginByPassword(payload) {

@@ -2,12 +2,14 @@ server:
   port: 8080
 
 spring:
+  config:
+    import: optional:file:./.env[.properties],optional:file:./server/.env[.properties]
   main:
     allow-circular-references: true
   datasource:
-    url: jdbc:mysql://localhost:3306/secondhand?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true
-    username: root
-    password: root
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:secondhand}?useSSL=${DB_USE_SSL:false}&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: ${DB_USER:root}
+    password: ${DB_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:

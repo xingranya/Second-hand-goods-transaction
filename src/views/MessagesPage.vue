@@ -13,8 +13,11 @@
       <section class="card chat-box">
         <header>
           <h2>{{ chatStore.activeConversation?.peerUser?.name || "请选择会话" }}</h2>
-          <RouterLink class="btn btn-muted" to="/order/o-4001">查看订单</RouterLink>
         </header>
+        <p v-if="chatStore.errorMessage" class="error-tip">{{ chatStore.errorMessage }}</p>
+        <p v-if="!chatStore.loading && !chatStore.messages.length" class="empty-tip">
+          {{ chatStore.activeId ? "暂无历史消息，发送一条消息开始聊天。" : "暂无会话，请从商品或求购详情发起聊天。" }}
+        </p>
         <div class="messages">
           <p v-for="msg in chatStore.messages" :key="msg.id" :class="['message', msg.from]">
             {{ msg.content }}
@@ -31,7 +34,7 @@
 
 <script setup>
 import { onMounted, ref } from "vue";
-import { RouterLink, useRoute } from "vue-router";
+import { useRoute } from "vue-router";
 import MessageConversationList from "@/components/MessageConversationList.vue";
 import { useChatStore } from "@/stores/chat";
 import { hasToken } from "@/api/auth";
@@ -47,16 +50,17 @@ async function changeConversation(id) {
 
 async function send() {
   if (!draft.value) return;
-  await chatStore.postMessage(draft.value);
+  await chatStore.postMessage(draft.value, route.query.productId ? Number(route.query.productId) : null);
   draft.value = "";
 }
 
 onMounted(async () => {
   if (!authed) return;
   await chatStore.loadConversations();
-  const fromQuery = route.query.conversation;
-  if (typeof fromQuery === "string") {
-    await chatStore.switchConversation(fromQuery);
+  const peerUserId = route.query.peerUserId || route.query.conversation;
+  const peerName = typeof route.query.peerName === "string" ? route.query.peerName : "";
+  if (typeof peerUserId === "string") {
+    await chatStore.switchConversation(peerUserId, peerName);
     return;
   }
   if (chatStore.activeId) {
@@ -140,6 +144,18 @@ footer {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 8px;
+}
+
+.error-tip {
+  margin: 8px 14px 0;
+  color: #dc2626;
+  font-size: 13px;
+}
+
+.empty-tip {
+  margin: 10px 14px 0;
+  color: var(--muted);
+  font-size: 13px;
 }
 
 @media (max-width: 980px) {

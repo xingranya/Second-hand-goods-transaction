@@ -1,5 +1,6 @@
 package com.secondhand.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -16,6 +17,7 @@ public class User {
     private String username;
 
     @Column(nullable = false)
+    @JsonIgnore
     private String password;
 
     @Column(nullable = false, unique = true)
@@ -23,6 +25,18 @@ public class User {
 
     @Column(name = "phone_number")
     private String phoneNumber;
+
+    @Column(name = "name")
+    private String name;
+
+    @Column(name = "school")
+    private String school;
+
+    @Column(name = "student_no")
+    private String studentNo;
+
+    @Column(name = "verified")
+    private boolean verified = false;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

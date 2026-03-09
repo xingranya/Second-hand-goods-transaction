@@ -2,7 +2,9 @@ package com.secondhand.repository;
 
 import com.secondhand.entity.Transaction;
 import org.springframework.data.jpa.repository.JpaRepository;
+
 import java.util.List;
+import java.util.Optional;
 
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
     List<Transaction> findByBuyerId(Long buyerId);
@@ -16,4 +18,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     List<Transaction> findByBuyerIdAndStatus(Long buyerId, String status);
     
     List<Transaction> findBySellerIdAndStatus(Long sellerId, String status);
+
+    Optional<Transaction> findTopByBuyerIdOrderByCreatedAtDesc(Long buyerId);
 } 

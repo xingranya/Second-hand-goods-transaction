@@ -1,33 +1,30 @@
-import apiClient from "@/api/client";
-import { callWithFallback } from "@/api/fallback";
+import { wantedEndpoints } from "@/api/endpoints";
 import { mapWantedPost } from "@/api/mappers";
-import { mockWantedPosts } from "@/mock/wanted";
+import { requestWithCandidates, unwrapList, unwrapPayload } from "@/api/compat";
 
 function normalizeWanted(payload) {
-  const list = Array.isArray(payload) ? payload : payload?.records || payload?.list || [];
+  const list = unwrapList(payload);
   return list.map(mapWantedPost);
 }
 
+function toCreatePayload(payload = {}) {
+  return {
+    title: payload.title || "",
+    expectedPrice: payload.expectedPrice || 0,
+    deadline: payload.deadline || "",
+    description: payload.description || "",
+    campus: payload.campus || ""
+  };
+}
+
 export async function fetchWantedPosts() {
-  return callWithFallback(
-    async () => {
-      const resp = await apiClient.get("/wanted");
-      return normalizeWanted(resp.data);
-    },
-    async () => normalizeWanted(mockWantedPosts)
-  );
+  const { data } = await requestWithCandidates(wantedEndpoints.list);
+  return normalizeWanted(data);
 }
 
 export async function createWantedPost(payload) {
-  return callWithFallback(
-    async () => {
-      const resp = await apiClient.post("/wanted", payload);
-      return mapWantedPost(resp.data);
-    },
-    async () => ({
-      id: `w-${Date.now()}`,
-      ...payload,
-      publishTime: "刚刚"
-    })
+  const { data } = await requestWithCandidates(
+    wantedEndpoints.create.map((item) => ({ ...item, data: toCreatePayload(payload) }))
   );
+  return mapWantedPost(unwrapPayload(data));
 }

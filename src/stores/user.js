@@ -1,21 +1,19 @@
 import { defineStore } from "pinia";
-import { fetchCurrentUser, submitVerify } from "@/api/services/users";
+import { fetchCurrentUser, loginByPassword, submitVerify } from "@/api/services/users";
 
 export const useUserStore = defineStore("user", {
   state: () => ({
-    profile: null,
-    demoMode: false
+    profile: null
   }),
   actions: {
     async loadProfile() {
-      const { data, demoMode } = await fetchCurrentUser();
-      this.profile = data;
-      this.demoMode = this.demoMode || demoMode;
+      this.profile = await fetchCurrentUser();
+    },
+    async login(payload) {
+      return loginByPassword(payload);
     },
     async submitVerifyForm(payload) {
-      const { data, demoMode } = await submitVerify(payload);
-      this.demoMode = this.demoMode || demoMode;
-      return data;
+      return submitVerify(payload);
     }
   }
 });

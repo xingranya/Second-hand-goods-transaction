@@ -4,6 +4,7 @@ import com.secondhand.security.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -39,7 +40,9 @@ public class SecurityConfig {
             .cors().and()
             .csrf().disable()
             .authorizeRequests(auth -> auth
-                .antMatchers("/", "/api/auth/**", "/api/products", "/api/products/search", "/api/products/{id}").permitAll()
+                .antMatchers("/", "/api/auth/**", "/api/system/db-health").permitAll()
+                .antMatchers(HttpMethod.GET, "/api/products/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/api/wanted").permitAll()
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

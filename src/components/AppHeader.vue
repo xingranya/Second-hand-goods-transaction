@@ -6,7 +6,13 @@
         <span>校园集市</span>
       </RouterLink>
       <nav class="nav-desktop">
-        <RouterLink v-for="item in navItems" :key="item.to" :to="item.to" class="nav-item" :class="{ active: isActive(item.to) }">
+        <RouterLink
+          v-for="item in navItems"
+          :key="item.to"
+          :to="item.to"
+          class="nav-item"
+          :class="{ active: isActive(item.to) }"
+        >
           {{ item.label }}
         </RouterLink>
       </nav>
@@ -15,16 +21,20 @@
           <span class="material-symbols-outlined">add_circle</span>
           发布
         </RouterLink>
+        <RouterLink v-if="!authed" class="auth-entry" to="/login">登录</RouterLink>
+        <button v-else class="auth-entry logout" @click="logout">退出</button>
       </div>
     </div>
   </header>
 </template>
 
 <script setup>
-import { computed } from "vue";
-import { useRoute, RouterLink } from "vue-router";
+import { computed, onMounted, onUnmounted, ref } from "vue";
+import { RouterLink, useRoute, useRouter } from "vue-router";
+import { clearToken, hasToken } from "@/api/auth";
 
 const route = useRoute();
+const router = useRouter();
 const navItems = [
   { label: "首页", to: "/" },
   { label: "求购", to: "/wanted" },
@@ -32,8 +42,30 @@ const navItems = [
   { label: "我的", to: "/profile" }
 ];
 
+const tokenState = ref(hasToken());
 const current = computed(() => route.path);
+const authed = computed(() => tokenState.value);
 const isActive = (target) => (target === "/" ? current.value === "/" : current.value.startsWith(target));
+
+function refreshAuthState() {
+  tokenState.value = hasToken();
+}
+
+function logout() {
+  clearToken();
+  tokenState.value = false;
+  router.push("/login");
+}
+
+onMounted(() => {
+  window.addEventListener("auth-changed", refreshAuthState);
+  window.addEventListener("storage", refreshAuthState);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("auth-changed", refreshAuthState);
+  window.removeEventListener("storage", refreshAuthState);
+});
 </script>
 
 <style scoped>
@@ -87,6 +119,7 @@ const isActive = (target) => (target === "/" ? current.value === "/" : current.v
 .header-tools {
   display: flex;
   align-items: center;
+  gap: 8px;
 }
 
 .publish-entry {
@@ -99,6 +132,20 @@ const isActive = (target) => (target === "/" ? current.value === "/" : current.v
   padding: 8px 12px;
   font-size: 13px;
   font-weight: 700;
+}
+
+.auth-entry {
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--primary);
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.logout {
+  cursor: pointer;
 }
 
 @media (max-width: 720px) {

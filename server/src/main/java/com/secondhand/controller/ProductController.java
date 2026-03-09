@@ -1,11 +1,14 @@
 package com.secondhand.controller;
 
 import com.secondhand.entity.Product;
+import com.secondhand.entity.User;
 import com.secondhand.service.ProductService;
+import com.secondhand.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -15,8 +18,15 @@ public class ProductController {
     @Autowired
     private ProductService productService;
 
+    @Autowired
+    private UserService userService;
+
     @PostMapping
-    public ResponseEntity<Product> createProduct(@RequestBody Product product) {
+    public ResponseEntity<Product> createProduct(@RequestBody Product product, Principal principal) {
+        if (product.getSeller() == null && principal != null) {
+            User currentUser = userService.getUserByUsername(principal.getName());
+            product.setSeller(currentUser);
+        }
         return ResponseEntity.ok(productService.createProduct(product));
     }
 

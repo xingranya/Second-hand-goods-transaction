@@ -10,7 +10,6 @@ function extractFromEnvelope(payload) {
   const candidates = [
     payload.data,
     payload.result,
-    payload.content,
     payload.body,
     payload.payload,
     payload.rows,

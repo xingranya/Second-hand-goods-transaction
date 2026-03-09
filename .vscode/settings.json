@@ -1,3 +1,13 @@
 {
-    "java.compile.nullAnalysis.mode": "automatic"
+  "java.jdt.ls.java.home": "E:/JAVA/jdk17",
+  "java.debug.settings.javaHome": "E:/JAVA/jdk17",
+  "java.import.maven.java.home": "E:/JAVA/jdk17",
+  "java.configuration.runtimes": [
+    {
+      "name": "JavaSE-17",
+      "path": "E:/JAVA/jdk17",
+      "default": true
+    }
+  ],
+  "java.compile.nullAnalysis.mode": "disabled"
 }

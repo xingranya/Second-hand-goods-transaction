@@ -18,7 +18,15 @@ const props = defineProps({
 });
 
 const stepList = ["已下单", "已付款", "已发货", "待收货", "待评价"];
-const activeIndex = computed(() => Math.max(0, stepList.indexOf(props.status)));
+const normalizedStatus = computed(() => {
+  const map = {
+    PENDING: "已下单",
+    COMPLETED: "待评价",
+    CANCELLED: "已下单"
+  };
+  return map[props.status] || props.status;
+});
+const activeIndex = computed(() => Math.max(0, stepList.indexOf(normalizedStatus.value)));
 </script>
 
 <style scoped>

@@ -1,49 +1,40 @@
-import apiClient from "@/api/client";
-import { callWithFallback } from "@/api/fallback";
 import { mapProduct } from "@/api/mappers";
 import { productEndpoints } from "@/api/endpoints";
 import { requestWithCandidates, unwrapList, unwrapPayload } from "@/api/compat";
-import { mockProducts, mockProductDetail } from "@/mock/products";
 
 function normalizeProducts(payload) {
   const list = unwrapList(payload);
   return list.map(mapProduct);
 }
 
+function toCreatePayload(payload = {}) {
+  const image = Array.isArray(payload.images) ? payload.images[0] : "";
+  return {
+    name: payload.title || "",
+    price: payload.price || 0,
+    description: payload.description || "",
+    condition: payload.condition || "",
+    imageUrl: image || "",
+    category: Array.isArray(payload.tags) ? payload.tags.join(",") : "",
+    status: "AVAILABLE"
+  };
+}
+
 export async function fetchProducts(params = {}) {
-  return callWithFallback(
-    async () => {
-      const candidates = productEndpoints.list.map((item) => ({ ...item, params }));
-      const { data } = await requestWithCandidates(candidates);
-      return normalizeProducts(data);
-    },
-    async () => normalizeProducts(mockProducts)
-  );
+  const candidates = productEndpoints.list.map((item) => ({ ...item, params }));
+  const { data } = await requestWithCandidates(candidates);
+  return normalizeProducts(data);
 }
 
 export async function fetchProductById(id) {
-  return callWithFallback(
-    async () => {
-      const { data } = await requestWithCandidates(productEndpoints.detail(id));
-      const payload = unwrapPayload(data);
-      return { ...mapProduct(payload), ...payload };
-    },
-    async () => ({ ...mockProductDetail, id })
-  );
+  const { data } = await requestWithCandidates(productEndpoints.detail(id));
+  const payload = unwrapPayload(data);
+  return { ...mapProduct(payload), ...payload };
 }
 
 export async function createProduct(payload) {
-  return callWithFallback(
-    async () => {
-      const { data } = await requestWithCandidates(
-        productEndpoints.create.map((item) => ({ ...item, data: payload }))
-      );
-      return mapProduct(unwrapPayload(data));
-    },
-    async () => ({
-      id: `mock-${Date.now()}`,
-      ...payload,
-      publishTime: "刚刚"
-    })
+  const { data } = await requestWithCandidates(
+    productEndpoints.create.map((item) => ({ ...item, data: toCreatePayload(payload) }))
   );
+  return mapProduct(unwrapPayload(data));
 }
