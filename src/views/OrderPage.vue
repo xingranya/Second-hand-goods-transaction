@@ -1,7 +1,12 @@
 <template>
   <section class="page-container order-page">
-    <OrderStepBar :status="order?.status" />
-    <article v-if="order" class="card detail">
+    <article v-if="!authed" class="card detail">
+      <h2>订单详情</h2>
+      <p>当前未登录，无法访问真实订单数据。</p>
+    </article>
+    <template v-else>
+      <OrderStepBar :status="order?.status" />
+      <article v-if="order" class="card detail">
       <h2>订单详情</h2>
       <p><strong>订单编号：</strong>{{ order.id }}</p>
       <p><strong>创建时间：</strong>{{ order.createTime }}</p>
@@ -15,7 +20,8 @@
         </div>
       </div>
       <div class="total">总计：¥{{ order.totalAmount }}</div>
-    </article>
+      </article>
+    </template>
   </section>
 </template>
 
@@ -24,12 +30,15 @@ import { computed, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import { useOrderStore } from "@/stores/order";
 import OrderStepBar from "@/components/OrderStepBar.vue";
+import { hasToken } from "@/api/auth";
 
 const route = useRoute();
 const store = useOrderStore();
 const order = computed(() => store.currentOrder);
+const authed = hasToken();
 
 onMounted(() => {
+  if (!authed) return;
   store.loadOrder(route.params.id);
 });
 </script>

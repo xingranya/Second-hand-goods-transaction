@@ -1,6 +1,10 @@
 <template>
   <section class="page-container messages-page">
-    <div class="layout">
+    <article v-if="!authed" class="card auth-card">
+      <h2>消息中心</h2>
+      <p>当前未登录，无法拉取真实会话数据。请先登录后再访问。</p>
+    </article>
+    <div v-else class="layout">
       <MessageConversationList
         :conversations="chatStore.conversations"
         :active-id="chatStore.activeId"
@@ -30,10 +34,12 @@ import { onMounted, ref } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 import MessageConversationList from "@/components/MessageConversationList.vue";
 import { useChatStore } from "@/stores/chat";
+import { hasToken } from "@/api/auth";
 
 const route = useRoute();
 const chatStore = useChatStore();
 const draft = ref("");
+const authed = hasToken();
 
 async function changeConversation(id) {
   await chatStore.switchConversation(id);
@@ -46,6 +52,7 @@ async function send() {
 }
 
 onMounted(async () => {
+  if (!authed) return;
   await chatStore.loadConversations();
   const fromQuery = route.query.conversation;
   if (typeof fromQuery === "string") {
@@ -61,6 +68,19 @@ onMounted(async () => {
 <style scoped>
 .messages-page {
   padding-top: 20px;
+}
+
+.auth-card {
+  padding: 18px;
+}
+
+.auth-card h2 {
+  margin: 0 0 8px;
+}
+
+.auth-card p {
+  margin: 0;
+  color: var(--muted);
 }
 
 .layout {

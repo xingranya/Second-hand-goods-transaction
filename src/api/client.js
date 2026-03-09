@@ -1,4 +1,5 @@
 import axios from "axios";
+import { clearToken, getToken } from "@/api/auth";
 
 const apiBaseURL = import.meta.env.VITE_API_BASE_URL || "/api";
 
@@ -8,7 +9,7 @@ const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use((config) => {
-  const token = window.localStorage.getItem("token");
+  const token = getToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -17,7 +18,13 @@ apiClient.interceptors.request.use((config) => {
 
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => Promise.reject(error)
+  (error) => {
+    const status = error?.response?.status;
+    if (status === 401) {
+      clearToken();
+    }
+    return Promise.reject(error);
+  }
 );
 
 export default apiClient;

@@ -1,19 +1,23 @@
 package com.secondhand.service.impl;
 
-import com.secondhand.model.User;
+import com.secondhand.entity.User;
 import com.secondhand.repository.UserRepository;
 import com.secondhand.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.Collections;
+import java.util.List;
 
 @Service
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Autowired
     private UserRepository userRepository;
@@ -34,29 +38,67 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public User registerUser(User user) {
-        if (userRepository.existsByUsername(user.getUsername())) {
-            throw new RuntimeException("Username is already taken!");
+        if (existsByUsername(user.getUsername())) {
+            throw new RuntimeException("Username is already taken");
         }
-
-        if (userRepository.existsByEmail(user.getEmail())) {
-            throw new RuntimeException("Email is already in use!");
+        if (existsByEmail(user.getEmail())) {
+            throw new RuntimeException("Email is already in use");
         }
-
+        
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
 
     @Override
-    public User findByUsername(String username) {
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
+    public User getUserById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + id));
     }
 
     @Override
-    public User findByEmail(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+    public User getUserByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with username: " + username));
+    }
+
+    @Override
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    @Override
+    @Transactional
+    public User updateUser(Long id, User userDetails) {
+        User user = getUserById(id);
+        
+        if (!user.getUsername().equals(userDetails.getUsername()) && 
+            existsByUsername(userDetails.getUsername())) {
+            throw new RuntimeException("Username is already taken");
+        }
+        
+        if (!user.getEmail().equals(userDetails.getEmail()) && 
+            existsByEmail(userDetails.getEmail())) {
+            throw new RuntimeException("Email is already in use");
+        }
+        
+        user.setUsername(userDetails.getUsername());
+        user.setEmail(userDetails.getEmail());
+        user.setPhoneNumber(userDetails.getPhoneNumber());
+        
+        if (userDetails.getPassword() != null && !userDetails.getPassword().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(userDetails.getPassword()));
+        }
+        
+        return userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public void deleteUser(Long id) {
+        User user = getUserById(id);
+        userRepository.delete(user);
     }
 
     @Override

@@ -1,6 +1,10 @@
 <template>
   <section class="page-container publish-page">
-    <form class="card form" @submit.prevent="submitForm">
+    <article v-if="!authed" class="card form">
+      <h2>发布新物品</h2>
+      <p class="tip">当前未检测到登录令牌，请先登录后再发布。</p>
+    </article>
+    <form v-else class="card form" @submit.prevent="submitForm">
       <h2>发布新物品</h2>
       <label>
         <span>物品标题</span>
@@ -47,9 +51,11 @@
 import { reactive } from "vue";
 import { useRouter } from "vue-router";
 import { useMarketStore } from "@/stores/market";
+import { hasToken } from "@/api/auth";
 
 const router = useRouter();
 const store = useMarketStore();
+const authed = hasToken();
 
 const form = reactive({
   title: "",
@@ -112,6 +118,11 @@ label {
 .actions {
   display: flex;
   justify-content: flex-end;
+}
+
+.tip {
+  margin: 6px 0 0;
+  color: var(--muted);
 }
 
 @media (max-width: 700px) {

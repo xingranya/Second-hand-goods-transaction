@@ -1,12 +1,22 @@
 package com.secondhand.service;
 
-import com.secondhand.model.User;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import com.secondhand.entity.User;
+import java.util.List;
 
-public interface UserService extends UserDetailsService {
+public interface UserService {
     User registerUser(User user);
-    User findByUsername(String username);
-    User findByEmail(String email);
+    
+    User getUserById(Long id);
+    
+    User getUserByUsername(String username);
+    
+    List<User> getAllUsers();
+    
+    User updateUser(Long id, User user);
+    
+    void deleteUser(Long id);
+    
     boolean existsByUsername(String username);
+    
     boolean existsByEmail(String email);
 } 

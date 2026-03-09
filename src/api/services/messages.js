@@ -1,18 +1,19 @@
-import apiClient from "@/api/client";
 import { callWithFallback } from "@/api/fallback";
 import { mapConversation } from "@/api/mappers";
+import { messageEndpoints } from "@/api/endpoints";
+import { requestWithCandidates, unwrapList, unwrapPayload } from "@/api/compat";
 import { mockConversations, mockMessagesByConversation } from "@/mock/messages";
 
 function toConversationList(payload) {
-  const list = Array.isArray(payload) ? payload : payload?.records || payload?.list || [];
+  const list = unwrapList(payload);
   return list.map(mapConversation);
 }
 
 export async function fetchConversations() {
   return callWithFallback(
     async () => {
-      const resp = await apiClient.get("/messages/conversations");
-      return toConversationList(resp.data);
+      const { data } = await requestWithCandidates(messageEndpoints.conversations);
+      return toConversationList(data);
     },
     async () => toConversationList(mockConversations)
   );
@@ -21,8 +22,13 @@ export async function fetchConversations() {
 export async function fetchConversationMessages(conversationId) {
   return callWithFallback(
     async () => {
-      const resp = await apiClient.get(`/messages/${conversationId}`);
-      return Array.isArray(resp.data?.messages) ? resp.data.messages : [];
+      const { data } = await requestWithCandidates(messageEndpoints.detail(conversationId));
+      const payload = unwrapPayload(data);
+      return Array.isArray(payload?.messages)
+        ? payload.messages
+        : Array.isArray(payload)
+          ? payload
+          : [];
     },
     async () => mockMessagesByConversation[conversationId] || []
   );
@@ -31,8 +37,8 @@ export async function fetchConversationMessages(conversationId) {
 export async function sendMessage(conversationId, content) {
   return callWithFallback(
     async () => {
-      const resp = await apiClient.post(`/messages/${conversationId}`, { content });
-      return resp.data;
+      const { data } = await requestWithCandidates(messageEndpoints.send(conversationId, content));
+      return unwrapPayload(data);
     },
     async () => ({
       id: `local-${Date.now()}`,
