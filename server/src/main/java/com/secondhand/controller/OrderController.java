@@ -19,7 +19,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -60,6 +66,46 @@ public class OrderController {
         Long transactionId = parseOrderId(id);
         Transaction transaction = transactionService.getTransactionById(transactionId);
         return ResponseEntity.ok(toOrderResponse(transaction));
+    }
+
+    @GetMapping("/my")
+    public ResponseEntity<List<OrderResponse>> getMyOrders(Principal principal) {
+        User currentUser = userService.getUserByUsername(principal.getName());
+
+        List<Transaction> buyerOrders = transactionService.getTransactionsByBuyer(currentUser.getId());
+        List<Transaction> sellerOrders = transactionService.getTransactionsBySeller(currentUser.getId());
+
+        Map<Long, Transaction> merged = new LinkedHashMap<>();
+        for (Transaction item : buyerOrders) {
+            merged.put(item.getId(), item);
+        }
+        for (Transaction item : sellerOrders) {
+            merged.put(item.getId(), item);
+        }
+
+        List<OrderResponse> list = new ArrayList<>(merged.values())
+                .stream()
+                .sorted(Comparator.comparing(Transaction::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
+                .map(this::toOrderResponse)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(list);
+    }
+
+    @PostMapping("/{id}/next-step")
+    public ResponseEntity<?> nextStep(@PathVariable String id, Principal principal) {
+        Long transactionId = parseOrderId(id);
+        Transaction transaction = transactionService.getTransactionById(transactionId);
+        User currentUser = userService.getUserByUsername(principal.getName());
+
+        boolean canOperate = transaction.getBuyer().getId().equals(currentUser.getId())
+                || transaction.getSeller().getId().equals(currentUser.getId());
+        if (!canOperate) {
+            return ResponseEntity.status(403).body(Collections.singletonMap("message", "无权操作该订单"));
+        }
+
+        Transaction updated = transactionService.advanceTransactionStep(transactionId);
+        return ResponseEntity.ok(toOrderResponse(updated));
     }
 
     private Long parseOrderId(String id) {

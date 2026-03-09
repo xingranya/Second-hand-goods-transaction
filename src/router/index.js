@@ -7,6 +7,9 @@ import PublishPage from "@/views/PublishPage.vue";
 import MessagesPage from "@/views/MessagesPage.vue";
 import WantedPage from "@/views/WantedPage.vue";
 import OrderPage from "@/views/OrderPage.vue";
+import OrderPayPage from "@/views/OrderPayPage.vue";
+import OrderReviewPage from "@/views/OrderReviewPage.vue";
+import RecentOrdersPage from "@/views/RecentOrdersPage.vue";
 import ProfilePage from "@/views/ProfilePage.vue";
 import VerifyPage from "@/views/VerifyPage.vue";
 import LoginPage from "@/views/LoginPage.vue";
@@ -24,6 +27,9 @@ const routes = [
       { path: "messages", name: "messages", component: MessagesPage },
       { path: "wanted", name: "wanted", component: WantedPage },
       { path: "order/:id", name: "order", component: OrderPage },
+      { path: "order/:id/pay", name: "orderPay", component: OrderPayPage },
+      { path: "order/:id/review", name: "orderReview", component: OrderReviewPage },
+      { path: "orders/recent", name: "recentOrders", component: RecentOrdersPage },
       { path: "profile", name: "profile", component: ProfilePage },
       { path: "verify", name: "verify", component: VerifyPage },
       { path: "login", name: "login", component: LoginPage }

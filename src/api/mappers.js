@@ -28,6 +28,9 @@ function normalizeTags(raw) {
 function normalizeOrderStatus(status) {
   const map = {
     PENDING: "已下单",
+    PAID: "已付款",
+    SHIPPED: "已发货",
+    RECEIVED: "待收货",
     COMPLETED: "待评价",
     CANCELLED: "已取消"
   };
@@ -87,6 +90,7 @@ export function mapConversation(raw = {}) {
 }
 
 export function mapWantedPost(raw = {}) {
+  const publisher = pick(raw, ["publisher", "user"], {});
   return {
     id: String(pick(raw, ["id", "wantedId", "purchaseId"], "")),
     title: pick(raw, ["title"], "未命名求购"),
@@ -94,7 +98,10 @@ export function mapWantedPost(raw = {}) {
     deadline: pick(raw, ["deadline", "wantedTime", "expireTime"], ""),
     description: pick(raw, ["description", "content", "remark"], ""),
     campus: pick(raw, ["campus", "campusName"], "主校区"),
-    publisher: pick(raw, ["publisher", "user"], {}),
+    publisher: {
+      id: String(pick(publisher, ["id", "userId"], "")),
+      name: pick(publisher, ["name", "username", "nickname"], "")
+    },
     publishTime: pick(raw, ["publishTime", "createdAt", "createTime"], "")
   };
 }

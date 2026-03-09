@@ -21,6 +21,9 @@ const stepList = ["已下单", "已付款", "已发货", "待收货", "待评价
 const normalizedStatus = computed(() => {
   const map = {
     PENDING: "已下单",
+    PAID: "已付款",
+    SHIPPED: "已发货",
+    RECEIVED: "待收货",
     COMPLETED: "待评价",
     CANCELLED: "已下单"
   };

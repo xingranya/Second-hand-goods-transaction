@@ -20,6 +20,8 @@ public interface TransactionService {
     
     List<Transaction> getSellerTransactionsByStatus(Long sellerId, String status);
     
+    Transaction advanceTransactionStep(Long id);
+
     Transaction completeTransaction(Long id);
     
     Transaction cancelTransaction(Long id);

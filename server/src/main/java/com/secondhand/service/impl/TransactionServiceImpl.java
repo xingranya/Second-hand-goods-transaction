@@ -9,10 +9,20 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class TransactionServiceImpl implements TransactionService {
+    private static final Map<String, String> STATUS_FLOW = new HashMap<>();
+
+    static {
+        STATUS_FLOW.put("PENDING", "PAID");
+        STATUS_FLOW.put("PAID", "SHIPPED");
+        STATUS_FLOW.put("SHIPPED", "RECEIVED");
+        STATUS_FLOW.put("RECEIVED", "COMPLETED");
+    }
 
     @Autowired
     private TransactionRepository transactionRepository;
@@ -57,6 +67,29 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public List<Transaction> getSellerTransactionsByStatus(Long sellerId, String status) {
         return transactionRepository.findBySellerIdAndStatus(sellerId, status);
+    }
+
+    @Override
+    @Transactional
+    public Transaction advanceTransactionStep(Long id) {
+        Transaction transaction = getTransactionById(id);
+        String current = transaction.getStatus();
+
+        if ("CANCELLED".equals(current)) {
+            throw new RuntimeException("已取消订单无法推进");
+        }
+
+        String next = STATUS_FLOW.get(current);
+        if (next == null) {
+            return transaction;
+        }
+
+        transaction.setStatus(next);
+        if ("COMPLETED".equals(next)) {
+            transaction.setCompletedAt(LocalDateTime.now());
+        }
+
+        return transactionRepository.save(transaction);
     }
 
     @Override

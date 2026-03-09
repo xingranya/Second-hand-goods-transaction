@@ -11,7 +11,7 @@
         <h3>交易管理</h3>
         <div class="actions">
           <RouterLink class="btn btn-primary" to="/publish">我发布的</RouterLink>
-          <RouterLink class="btn btn-muted" :to="latestOrderLink">最近订单</RouterLink>
+          <RouterLink class="btn btn-muted" to="/orders/recent">最近订单</RouterLink>
           <RouterLink class="btn btn-muted" to="/messages">消息中心</RouterLink>
         </div>
       </section>
@@ -26,7 +26,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from "vue";
+import { onMounted } from "vue";
 import { RouterLink } from "vue-router";
 import UserProfileCard from "@/components/UserProfileCard.vue";
 import { useUserStore } from "@/stores/user";
@@ -34,10 +34,6 @@ import { hasToken } from "@/api/auth";
 
 const userStore = useUserStore();
 const authed = hasToken();
-const latestOrderLink = computed(() => {
-  const orderId = userStore.profile?.latestOrderId;
-  return orderId ? `/order/${orderId}` : "/search";
-});
 
 onMounted(() => {
   if (!authed) return;

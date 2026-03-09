@@ -28,7 +28,7 @@ public class Product {
     @Column(name = "category")
     private String category;
 
-    @Column(name = "condition")
+    @Column(name = "`condition`")
     private String condition;
 
     @ManyToOne

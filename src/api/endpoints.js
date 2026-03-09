@@ -14,7 +14,9 @@ export const messageEndpoints = {
 
 export const orderEndpoints = {
   create: [{ method: "post", url: "/orders" }],
-  detail: (id) => [{ method: "get", url: `/orders/${id}` }]
+  detail: (id) => [{ method: "get", url: `/orders/${id}` }],
+  my: [{ method: "get", url: "/orders/my" }],
+  nextStep: (id) => [{ method: "post", url: `/orders/${id}/next-step` }]
 };
 
 export const wantedEndpoints = {
@@ -26,4 +28,8 @@ export const userEndpoints = {
   me: [{ method: "get", url: "/users/me" }],
   verify: [{ method: "post", url: "/users/verify" }],
   login: [{ method: "post", url: "/auth/login" }]
+};
+
+export const reviewEndpoints = {
+  create: [{ method: "post", url: "/reviews" }]
 };
