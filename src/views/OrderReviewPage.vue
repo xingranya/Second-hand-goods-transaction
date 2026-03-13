@@ -3,7 +3,7 @@
     <article v-if="!authed" class="card panel">
       <h2>订单评价</h2>
       <p>当前未登录，请先登录后评价。</p>
-      <RouterLink class="btn btn-primary" to="/login">去登录</RouterLink>
+      <RouterLink class="btn btn-primary" :to="loginLocation">去登录</RouterLink>
     </article>
     <article v-else-if="!order" class="card panel">加载订单中...</article>
     <article v-else class="card panel">
@@ -61,16 +61,19 @@
 
 <script setup>
 import { computed, onMounted, ref, watch } from "vue";
+import { storeToRefs } from "pinia";
 import { RouterLink, useRoute } from "vue-router";
 import { useOrderStore } from "@/stores/order";
 import { useUserStore } from "@/stores/user";
 import { submitReview } from "@/api/services/reviews";
-import { hasToken } from "@/api/auth";
+import { createLoginLocation } from "@/utils/auth";
 
 const route = useRoute();
 const orderStore = useOrderStore();
 const userStore = useUserStore();
-const authed = hasToken();
+const { isAuthenticated } = storeToRefs(userStore);
+const authed = computed(() => isAuthenticated.value);
+const loginLocation = computed(() => createLoginLocation(route));
 const order = computed(() => orderStore.currentOrder);
 const rating = ref(5);
 const comment = ref("");
@@ -79,7 +82,7 @@ const submitted = ref(false);
 const errorMessage = ref("");
 
 onMounted(async () => {
-  if (!authed) return;
+  if (!authed.value) return;
   await orderStore.loadOrder(route.params.id);
   if (!userStore.profile?.id) {
     await userStore.loadProfile();
@@ -89,7 +92,7 @@ onMounted(async () => {
 watch(
   () => route.params.id,
   async (id) => {
-    if (!authed || !id) return;
+    if (!authed.value || !id) return;
     await orderStore.loadOrder(id);
   }
 );
@@ -106,8 +109,7 @@ async function submit() {
     }
 
     await submitReview({
-      product: { id: productId },
-      reviewer: { id: reviewerId },
+      productId,
       rating: rating.value,
       comment: comment.value
     });

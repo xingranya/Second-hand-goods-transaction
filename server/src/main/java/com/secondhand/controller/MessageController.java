@@ -2,6 +2,7 @@ package com.secondhand.controller;
 
 import com.secondhand.dto.ConversationMessageRequest;
 import com.secondhand.dto.ConversationResponse;
+import com.secondhand.dto.MessageDetailResponse;
 import com.secondhand.dto.MessageItemResponse;
 import com.secondhand.entity.Message;
 import com.secondhand.entity.Product;
@@ -11,15 +12,7 @@ import com.secondhand.service.ProductService;
 import com.secondhand.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.security.Principal;
@@ -41,11 +34,6 @@ public class MessageController {
 
     @Autowired
     private ProductService productService;
-
-    @PostMapping
-    public ResponseEntity<Message> sendMessage(@RequestBody Message message) {
-        return ResponseEntity.ok(messageService.sendMessage(message));
-    }
 
     @GetMapping("/conversations")
     public ResponseEntity<List<ConversationResponse>> getConversations(Principal principal) {
@@ -112,47 +100,106 @@ public class MessageController {
     }
 
     @GetMapping("/{id:\\d+}")
-    public ResponseEntity<Message> getMessage(@PathVariable Long id) {
-        return ResponseEntity.ok(messageService.getMessageById(id));
+    public ResponseEntity<MessageDetailResponse> getMessage(@PathVariable Long id, Principal principal) {
+        User currentUser = userService.getUserByUsername(principal.getName());
+        Message message = messageService.getMessageById(id);
+        if (!canAccessMessage(message, currentUser)) {
+            throw new IllegalArgumentException("无权查看该消息");
+        }
+        return ResponseEntity.ok(toMessageDetail(message));
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Message>> getUserConversations(@PathVariable Long userId) {
-        return ResponseEntity.ok(messageService.getUserConversations(userId));
+    public ResponseEntity<List<MessageDetailResponse>> getUserConversations(@PathVariable Long userId, Principal principal) {
+        User currentUser = userService.getUserByUsername(principal.getName());
+        ensureCurrentUserOrAdmin(currentUser, userId);
+        return ResponseEntity.ok(messageService.getUserConversations(userId)
+                .stream()
+                .map(this::toMessageDetail)
+                .collect(Collectors.toList()));
     }
 
     @GetMapping("/conversation")
-    public ResponseEntity<List<Message>> getConversationBetweenUsers(
+    public ResponseEntity<List<MessageDetailResponse>> getConversationBetweenUsers(
             @RequestParam Long user1Id,
-            @RequestParam Long user2Id) {
-        return ResponseEntity.ok(messageService.getConversationBetweenUsers(user1Id, user2Id));
+            @RequestParam Long user2Id,
+            Principal principal) {
+        User currentUser = userService.getUserByUsername(principal.getName());
+        boolean canView = isAdmin(currentUser)
+                || currentUser.getId().equals(user1Id)
+                || currentUser.getId().equals(user2Id);
+        if (!canView) {
+            throw new IllegalArgumentException("无权查看该会话");
+        }
+        return ResponseEntity.ok(messageService.getConversationBetweenUsers(user1Id, user2Id)
+                .stream()
+                .map(this::toMessageDetail)
+                .collect(Collectors.toList()));
     }
 
     @GetMapping("/product/{productId}")
-    public ResponseEntity<List<Message>> getMessagesByProduct(@PathVariable Long productId) {
-        return ResponseEntity.ok(messageService.getMessagesByProduct(productId));
+    public ResponseEntity<List<MessageDetailResponse>> getMessagesByProduct(@PathVariable Long productId, Principal principal) {
+        User currentUser = userService.getUserByUsername(principal.getName());
+        if (!isAdmin(currentUser)) {
+            throw new IllegalArgumentException("仅管理员可查看商品消息汇总");
+        }
+        return ResponseEntity.ok(messageService.getMessagesByProduct(productId)
+                .stream()
+                .map(this::toMessageDetail)
+                .collect(Collectors.toList()));
     }
 
     @PatchMapping("/{id:\\d+}/read")
-    public ResponseEntity<Message> markMessageAsRead(@PathVariable Long id) {
-        return ResponseEntity.ok(messageService.markMessageAsRead(id));
+    public ResponseEntity<MessageDetailResponse> markMessageAsRead(@PathVariable Long id, Principal principal) {
+        User currentUser = userService.getUserByUsername(principal.getName());
+        Message message = messageService.getMessageById(id);
+        if (!canAccessMessage(message, currentUser)) {
+            throw new IllegalArgumentException("无权操作该消息");
+        }
+        return ResponseEntity.ok(toMessageDetail(messageService.markMessageAsRead(id)));
     }
 
     @PatchMapping("/user/{userId}/read-all")
-    public ResponseEntity<Void> markAllMessagesAsRead(@PathVariable Long userId) {
+    public ResponseEntity<Void> markAllMessagesAsRead(@PathVariable Long userId, Principal principal) {
+        User currentUser = userService.getUserByUsername(principal.getName());
+        ensureCurrentUserOrAdmin(currentUser, userId);
         messageService.markAllMessagesAsRead(userId);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/user/{userId}/unread-count")
-    public ResponseEntity<Long> getUnreadMessageCount(@PathVariable Long userId) {
+    public ResponseEntity<Long> getUnreadMessageCount(@PathVariable Long userId, Principal principal) {
+        User currentUser = userService.getUserByUsername(principal.getName());
+        ensureCurrentUserOrAdmin(currentUser, userId);
         return ResponseEntity.ok(messageService.getUnreadMessageCount(userId));
     }
 
     @DeleteMapping("/{id:\\d+}")
-    public ResponseEntity<Void> deleteMessage(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteMessage(@PathVariable Long id, Principal principal) {
+        User currentUser = userService.getUserByUsername(principal.getName());
+        Message message = messageService.getMessageById(id);
+        if (!canAccessMessage(message, currentUser)) {
+            throw new IllegalArgumentException("无权删除该消息");
+        }
         messageService.deleteMessage(id);
         return ResponseEntity.ok().build();
+    }
+
+    private void ensureCurrentUserOrAdmin(User currentUser, Long targetUserId) {
+        if (currentUser.getId().equals(targetUserId) || isAdmin(currentUser)) {
+            return;
+        }
+        throw new IllegalArgumentException("无权访问该用户消息");
+    }
+
+    private boolean canAccessMessage(Message message, User currentUser) {
+        return isAdmin(currentUser)
+                || message.getSender().getId().equals(currentUser.getId())
+                || message.getReceiver().getId().equals(currentUser.getId());
+    }
+
+    private boolean isAdmin(User user) {
+        return user != null && "ADMIN".equalsIgnoreCase(user.getRole());
     }
 
     private Long parsePeerId(String peerUserId) {
@@ -172,7 +219,25 @@ public class MessageController {
         );
     }
 
+    private MessageDetailResponse toMessageDetail(Message message) {
+        return new MessageDetailResponse(
+                String.valueOf(message.getId()),
+                message.getSender().getId(),
+                displayName(message.getSender()),
+                message.getReceiver().getId(),
+                displayName(message.getReceiver()),
+                message.getProduct() == null ? null : message.getProduct().getId(),
+                message.getProduct() == null ? "" : message.getProduct().getName(),
+                message.getContent(),
+                message.isRead(),
+                message.getCreatedAt() == null ? "" : message.getCreatedAt().toString()
+        );
+    }
+
     private String displayName(User user) {
+        if (user == null) {
+            return "未知用户";
+        }
         if (user.getName() != null && !user.getName().trim().isEmpty()) {
             return user.getName();
         }

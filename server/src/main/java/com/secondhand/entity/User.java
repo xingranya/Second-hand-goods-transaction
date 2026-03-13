@@ -2,6 +2,7 @@ package com.secondhand.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
@@ -38,6 +39,12 @@ public class User {
     @Column(name = "verified")
     private boolean verified = false;
 
+    @Column(name = "role")
+    private String role = "USER";
+
+    @Column(name = "enabled")
+    private Boolean enabled = true;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -46,12 +53,29 @@ public class User {
 
     @PrePersist
     protected void onCreate() {
+        if (role == null || role.trim().isEmpty()) {
+            role = "USER";
+        }
+        if (enabled == null) {
+            enabled = true;
+        }
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
     }
 
     @PreUpdate
     protected void onUpdate() {
+        if (enabled == null) {
+            enabled = true;
+        }
         updatedAt = LocalDateTime.now();
     }
-} 
+
+    public boolean isEnabled() {
+        return enabled == null || enabled;
+    }
+
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled == null ? true : enabled;
+    }
+}

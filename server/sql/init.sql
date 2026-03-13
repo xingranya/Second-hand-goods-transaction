@@ -24,6 +24,8 @@ CREATE TABLE IF NOT EXISTS `users` (
   `school` VARCHAR(255) DEFAULT NULL,
   `student_no` VARCHAR(255) DEFAULT NULL,
   `verified` BIT(1) NOT NULL DEFAULT b'0',
+  `role` VARCHAR(255) DEFAULT 'USER',
+  `enabled` BIT(1) NOT NULL DEFAULT b'1',
   `created_at` DATETIME DEFAULT NULL,
   `updated_at` DATETIME DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -36,9 +38,11 @@ CREATE TABLE IF NOT EXISTS `products` (
   `name` VARCHAR(255) NOT NULL,
   `description` VARCHAR(1000) DEFAULT NULL,
   `price` DECIMAL(19,2) NOT NULL,
+  `original_price` DECIMAL(19,2) DEFAULT NULL,
   `image_url` VARCHAR(255) DEFAULT NULL,
   `category` VARCHAR(255) DEFAULT NULL,
   `condition` VARCHAR(255) DEFAULT NULL,
+  `campus` VARCHAR(255) DEFAULT NULL,
   `seller_id` BIGINT NOT NULL,
   `status` VARCHAR(255) DEFAULT NULL,
   `created_at` DATETIME DEFAULT NULL,
@@ -113,31 +117,32 @@ CREATE TABLE IF NOT EXISTS `wanted_posts` (
   CONSTRAINT `fk_wanted_publisher` FOREIGN KEY (`publisher_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 清理脚本内置演示数据，便于重复导入
+-- 清理脚本内置初始化数据，便于重复导入
 DELETE FROM `reviews` WHERE `id` IN (1, 2);
 DELETE FROM `messages` WHERE `id` IN (1, 2, 3);
 DELETE FROM `transactions` WHERE `id` IN (1, 2);
 DELETE FROM `wanted_posts` WHERE `id` IN (1, 2);
 DELETE FROM `products` WHERE `id` IN (1, 2, 3, 4);
-DELETE FROM `users` WHERE `id` IN (1, 2, 3);
+DELETE FROM `users` WHERE `id` IN (1, 2, 3, 99);
 
 -- BCrypt(123456)
 SET @PWD_HASH = '$2a$10$VreBkEVIIqIvynfocMCYruDyMRShpmj5ynkdNwKw94VEYsRWSRt9i';
 
 INSERT INTO `users`
-(`id`, `username`, `password`, `email`, `phone_number`, `name`, `school`, `student_no`, `verified`, `created_at`, `updated_at`)
+(`id`, `username`, `password`, `email`, `phone_number`, `name`, `school`, `student_no`, `verified`, `role`, `enabled`, `created_at`, `updated_at`)
 VALUES
-(1, 'seller01', @PWD_HASH, 'seller01@example.com', '13800000001', '张同学', '主校区', '20230001', b'1', NOW(), NOW()),
-(2, 'buyer01',  @PWD_HASH, 'buyer01@example.com',  '13800000002', '李同学', '主校区', '20230002', b'1', NOW(), NOW()),
-(3, 'seller02', @PWD_HASH, 'seller02@example.com', '13800000003', '王同学', '东校区', '20230003', b'0', NOW(), NOW());
+(1, 'seller01', @PWD_HASH, 'seller01@example.com', '13800000001', '张同学', '主校区', '20230001', b'1', 'USER', b'1', NOW(), NOW()),
+(2, 'buyer01',  @PWD_HASH, 'buyer01@example.com',  '13800000002', '李同学', '主校区', '20230002', b'1', 'USER', b'1', NOW(), NOW()),
+(3, 'seller02', @PWD_HASH, 'seller02@example.com', '13800000003', '王同学', '东校区', '20230003', b'0', 'USER', b'1', NOW(), NOW()),
+(99, 'admin', @PWD_HASH, 'admin@example.com', '13800009999', '系统管理员', '主校区', 'A0001', b'1', 'ADMIN', b'1', NOW(), NOW());
 
 INSERT INTO `products`
-(`id`, `name`, `description`, `price`, `image_url`, `category`, `condition`, `seller_id`, `status`, `created_at`, `updated_at`)
+(`id`, `name`, `description`, `price`, `original_price`, `image_url`, `category`, `condition`, `campus`, `seller_id`, `status`, `created_at`, `updated_at`)
 VALUES
-(1, '九成新机械键盘', 'Cherry 青轴，带原装线材和键帽。', 199.00, 'https://images.unsplash.com/photo-1517336714739-489689fd1ca8?w=1200', '电子产品', '9成新', 1, 'AVAILABLE', NOW(), NOW()),
-(2, '考研数学全套资料', '含真题、笔记和讲义，几乎全新。', 88.00, 'https://images.unsplash.com/photo-1513258496099-48168024aec0?w=1200', '学习资料', '95新', 1, 'AVAILABLE', NOW(), NOW()),
-(3, '二手显示器 24寸', '1080P，接口正常，无坏点。', 360.00, 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=1200', '数码设备', '8成新', 3, 'AVAILABLE', NOW(), NOW()),
-(4, '宿舍折叠自行车', '可折叠，通勤代步，刹车灵敏。', 420.00, 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=1200', '交通工具', '8成新', 3, 'SOLD', NOW(), NOW());
+(1, '九成新机械键盘', 'Cherry 青轴，带原装线材和键帽。', 199.00, 399.00, 'https://images.unsplash.com/photo-1517336714739-489689fd1ca8?w=1200', '电子产品', '9成新', '主校区', 1, 'AVAILABLE', NOW(), NOW()),
+(2, '考研数学全套资料', '含真题、笔记和讲义，几乎全新。', 88.00, 168.00, 'https://images.unsplash.com/photo-1513258496099-48168024aec0?w=1200', '学习资料', '95新', '主校区', 1, 'AVAILABLE', NOW(), NOW()),
+(3, '二手显示器 24寸', '1080P，接口正常，无坏点。', 360.00, 699.00, 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=1200', '数码设备', '8成新', '东校区', 3, 'AVAILABLE', NOW(), NOW()),
+(4, '宿舍折叠自行车', '可折叠，通勤代步，刹车灵敏。', 420.00, 899.00, 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=1200', '交通工具', '8成新', '东校区', 3, 'SOLD', NOW(), NOW());
 
 INSERT INTO `transactions`
 (`id`, `product_id`, `buyer_id`, `seller_id`, `amount`, `status`, `created_at`, `completed_at`, `cancelled_at`, `note`)

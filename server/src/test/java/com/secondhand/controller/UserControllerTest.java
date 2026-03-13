@@ -10,6 +10,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.UUID;
+
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -28,14 +30,16 @@ public class UserControllerTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    private String username;
+
     @BeforeEach
     public void setUp() {
-        userRepository.deleteAll();
+        username = "tester_" + UUID.randomUUID().toString().replace("-", "").substring(0, 8);
 
         User user = new User();
-        user.setUsername("tester");
+        user.setUsername(username);
         user.setPassword(passwordEncoder.encode("password123"));
-        user.setEmail("tester@example.com");
+        user.setEmail(username + "@example.com");
         user.setName("测试用户");
         user.setSchool("主校区");
         userRepository.save(user);
@@ -49,7 +53,7 @@ public class UserControllerTest {
 
     @Test
     public void testGetCurrentUserProfile() throws Exception {
-        mockMvc.perform(get("/api/users/me").with(user("tester")))
+        mockMvc.perform(get("/api/users/me").with(user(username)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("测试用户"))
                 .andExpect(jsonPath("$.school").value("主校区"))

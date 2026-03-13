@@ -1,15 +1,19 @@
 :root {
-  --bg: #f6f8ff;
-  --surface: #ffffff;
-  --surface-soft: #eef2ff;
-  --text: #1f2a44;
-  --muted: #64748b;
-  --primary: #2563eb;
-  --primary-strong: #1d4ed8;
-  --accent: #f97316;
+  --bg: #f4f7fb;
+  --surface: rgba(255, 255, 255, 0.92);
+  --surface-soft: #edf4ff;
+  --surface-strong: #dfeaff;
+  --text: #1b2a45;
+  --muted: #617089;
+  --primary: #2453c7;
+  --primary-strong: #173a8f;
+  --accent: #ea6d27;
   --success: #16a34a;
-  --border: #dbe4ff;
-  --shadow: 0 12px 28px rgba(29, 78, 216, 0.12);
+  --danger: #dc2626;
+  --border: rgba(132, 159, 210, 0.26);
+  --shadow: 0 18px 50px rgba(28, 63, 131, 0.12);
+  --font-body: "Public Sans", sans-serif;
+  --font-display: "Noto Serif SC", serif;
 }
 
 * {
@@ -25,12 +29,14 @@ body,
 }
 
 body {
-  font-family: "Public Sans", sans-serif;
+  font-family: var(--font-body);
   color: var(--text);
   background:
-    radial-gradient(circle at top left, #e0edff 0%, rgba(224, 237, 255, 0) 48%),
-    radial-gradient(circle at top right, #ffe6d6 0%, rgba(255, 230, 214, 0) 38%),
+    radial-gradient(circle at top left, rgba(210, 225, 255, 0.92) 0%, rgba(210, 225, 255, 0) 44%),
+    radial-gradient(circle at 85% 12%, rgba(255, 224, 196, 0.78) 0%, rgba(255, 224, 196, 0) 32%),
+    linear-gradient(180deg, #fbfdff 0%, #f1f5fb 100%),
     var(--bg);
+  background-attachment: fixed;
 }
 
 a {
@@ -59,8 +65,9 @@ select {
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 20px;
   box-shadow: var(--shadow);
+  backdrop-filter: blur(14px);
 }
 
 .tag {
@@ -76,11 +83,17 @@ select {
 
 .btn {
   border: 0;
-  border-radius: 12px;
-  padding: 10px 16px;
+  border-radius: 14px;
+  padding: 11px 16px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+  transform: none;
 }
 
 .btn-primary {
@@ -106,15 +119,26 @@ select {
 .input {
   width: 100%;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 12px 14px;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.92);
   outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
 .input:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.input:disabled {
+  background: #f3f4f6;
+  color: var(--muted);
+}
+
+.input.input-error {
+  border-color: rgba(220, 38, 38, 0.45);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.08);
 }
 
 .grid-cards {

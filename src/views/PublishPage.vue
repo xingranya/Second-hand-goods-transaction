@@ -3,6 +3,7 @@
     <article v-if="!authed" class="card form">
       <h2>发布新物品</h2>
       <p class="tip">当前未检测到登录令牌，请先登录后再发布。</p>
+      <RouterLink class="btn btn-primary" :to="loginLocation">去登录</RouterLink>
     </article>
     <form v-else class="card form" @submit.prevent="submitForm">
       <h2>发布新物品</h2>
@@ -37,6 +38,21 @@
         </select>
       </label>
       <label>
+        <span>分类</span>
+        <select v-model="form.category" class="input">
+          <option value="数码">数码</option>
+          <option value="书籍">书籍</option>
+          <option value="生活用品">生活用品</option>
+          <option value="服饰">服饰</option>
+          <option value="家具">家具</option>
+          <option value="其他">其他</option>
+        </select>
+      </label>
+      <label>
+        <span>封面图链接</span>
+        <input v-model.trim="form.imageUrl" class="input" placeholder="可填写图片 URL，留空则使用默认封面" />
+      </label>
+      <label>
         <span>详情描述</span>
         <textarea v-model.trim="form.description" class="input text-area" rows="5" />
       </label>
@@ -48,14 +64,20 @@
 </template>
 
 <script setup>
-import { reactive } from "vue";
-import { useRouter } from "vue-router";
+import { computed, reactive } from "vue";
+import { storeToRefs } from "pinia";
+import { RouterLink, useRoute, useRouter } from "vue-router";
 import { useMarketStore } from "@/stores/market";
-import { hasToken } from "@/api/auth";
+import { useUserStore } from "@/stores/user";
+import { createLoginLocation } from "@/utils/auth";
 
+const route = useRoute();
 const router = useRouter();
 const store = useMarketStore();
-const authed = hasToken();
+const userStore = useUserStore();
+const { isAuthenticated } = storeToRefs(userStore);
+const authed = computed(() => isAuthenticated.value);
+const loginLocation = computed(() => createLoginLocation(route));
 
 const form = reactive({
   title: "",
@@ -63,14 +85,18 @@ const form = reactive({
   originPrice: 0,
   condition: "95新",
   campus: "主校区",
+  category: "数码",
+  imageUrl: "",
   description: ""
 });
 
 async function submitForm() {
   await store.publishProduct({
     ...form,
-    images: ["https://images.unsplash.com/photo-1484704849700-f032a568e944?w=1200"],
-    tags: ["新发布"]
+    images: [
+      form.imageUrl || "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=1200"
+    ],
+    tags: [form.category]
   });
   router.push({
     path: "/",

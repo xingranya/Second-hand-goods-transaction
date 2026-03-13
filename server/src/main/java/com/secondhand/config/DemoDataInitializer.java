@@ -66,24 +66,30 @@ public class DemoDataInitializer implements CommandLineRunner {
 
     private Map<String, User> seedUsers() {
         List<DemoUserSeed> userSeeds = Arrays.asList(
-                new DemoUserSeed("alice", "123456", "alice@campus.com", "李晨", "13800000001", "主校区", "20220001", true),
-                new DemoUserSeed("bob", "123456", "bob@campus.com", "王雨", "13800000002", "主校区", "20220002", true),
-                new DemoUserSeed("charlie", "123456", "charlie@campus.com", "张宁", "13800000003", "东校区", "20220003", true),
-                new DemoUserSeed("diana", "123456", "diana@campus.com", "陈语", "13800000004", "西校区", "20220004", true),
-                new DemoUserSeed("eric", "123456", "eric@campus.com", "刘哲", "13800000005", "主校区", "20220005", false),
-                new DemoUserSeed("fiona", "123456", "fiona@campus.com", "周晴", "13800000006", "东校区", "20220006", true),
-                new DemoUserSeed("george", "123456", "george@campus.com", "赵凯", "13800000007", "西校区", "20220007", false),
-                new DemoUserSeed("helen", "123456", "helen@campus.com", "孙悦", "13800000008", "主校区", "20220008", true),
-                new DemoUserSeed("ivan", "123456", "ivan@campus.com", "吴凡", "13800000009", "东校区", "20220009", true),
-                new DemoUserSeed("jenny", "123456", "jenny@campus.com", "郑雪", "13800000010", "西校区", "20220010", true)
+                new DemoUserSeed("admin", "123456", "admin@campus.com", "系统管理员", "13800009999", "主校区", "A0001", true, "ADMIN", true),
+                new DemoUserSeed("alice", "123456", "alice@campus.com", "李晨", "13800000001", "主校区", "20220001", true, "USER", true),
+                new DemoUserSeed("bob", "123456", "bob@campus.com", "王雨", "13800000002", "主校区", "20220002", true, "USER", true),
+                new DemoUserSeed("charlie", "123456", "charlie@campus.com", "张宁", "13800000003", "东校区", "20220003", true, "USER", true),
+                new DemoUserSeed("diana", "123456", "diana@campus.com", "陈语", "13800000004", "西校区", "20220004", true, "USER", true),
+                new DemoUserSeed("eric", "123456", "eric@campus.com", "刘哲", "13800000005", "主校区", "20220005", false, "USER", true),
+                new DemoUserSeed("fiona", "123456", "fiona@campus.com", "周晴", "13800000006", "东校区", "20220006", true, "USER", true),
+                new DemoUserSeed("george", "123456", "george@campus.com", "赵凯", "13800000007", "西校区", "20220007", false, "USER", true),
+                new DemoUserSeed("helen", "123456", "helen@campus.com", "孙悦", "13800000008", "主校区", "20220008", true, "USER", true),
+                new DemoUserSeed("ivan", "123456", "ivan@campus.com", "吴凡", "13800000009", "东校区", "20220009", true, "USER", true),
+                new DemoUserSeed("jenny", "123456", "jenny@campus.com", "郑雪", "13800000010", "西校区", "20220010", true, "USER", true)
         );
 
-        Map<String, User> userMap = userRepository.findAll()
+        List<User> existingUsers = userRepository.findAll();
+        normalizeLegacyUsers(existingUsers);
+
+        Map<String, User> userMap = existingUsers
                 .stream()
                 .collect(Collectors.toMap(User::getUsername, item -> item, (a, b) -> a));
 
         for (DemoUserSeed seed : userSeeds) {
-            if (userMap.containsKey(seed.username)) {
+            User existing = userMap.get(seed.username);
+            if (existing != null) {
+                syncSeedUser(existing, seed);
                 continue;
             }
             User user = new User();
@@ -95,6 +101,8 @@ public class DemoDataInitializer implements CommandLineRunner {
             user.setSchool(seed.school);
             user.setStudentNo(seed.studentNo);
             user.setVerified(seed.verified);
+            user.setRole(seed.role);
+            user.setEnabled(seed.enabled);
             User saved = userRepository.save(user);
             userMap.put(saved.getUsername(), saved);
         }
@@ -102,24 +110,84 @@ public class DemoDataInitializer implements CommandLineRunner {
         return userMap;
     }
 
+    private void syncSeedUser(User user, DemoUserSeed seed) {
+        boolean changed = false;
+        if ("admin".equals(seed.username) && (user.getPassword() == null || !passwordEncoder.matches(seed.password, user.getPassword()))) {
+            user.setPassword(passwordEncoder.encode(seed.password));
+            changed = true;
+        }
+        if (user.getEmail() == null || user.getEmail().trim().isEmpty()) {
+            user.setEmail(seed.email);
+            changed = true;
+        }
+        if (user.getName() == null || user.getName().trim().isEmpty()) {
+            user.setName(seed.name);
+            changed = true;
+        }
+        if (user.getPhoneNumber() == null || user.getPhoneNumber().trim().isEmpty()) {
+            user.setPhoneNumber(seed.phoneNumber);
+            changed = true;
+        }
+        if (user.getSchool() == null || user.getSchool().trim().isEmpty()) {
+            user.setSchool(seed.school);
+            changed = true;
+        }
+        if (user.getStudentNo() == null || user.getStudentNo().trim().isEmpty()) {
+            user.setStudentNo(seed.studentNo);
+            changed = true;
+        }
+        if ("admin".equals(seed.username) && !"ADMIN".equalsIgnoreCase(user.getRole())) {
+            user.setRole("ADMIN");
+            changed = true;
+        }
+        if ("admin".equals(seed.username) && !user.isEnabled()) {
+            user.setEnabled(true);
+            changed = true;
+        }
+        if ("admin".equals(seed.username) && !user.isVerified()) {
+            user.setVerified(true);
+            changed = true;
+        }
+        if (changed) {
+            userRepository.save(user);
+        }
+    }
+
+    private void normalizeLegacyUsers(List<User> users) {
+        for (User user : users) {
+            boolean changed = false;
+            if (user.getRole() == null || user.getRole().trim().isEmpty()) {
+                user.setRole("USER");
+                changed = true;
+            }
+            if (user.getEnabled() == null) {
+                user.setEnabled(true);
+                changed = true;
+            }
+            if (changed) {
+                userRepository.save(user);
+            }
+        }
+    }
+
     private Map<String, Product> seedProducts(Map<String, User> users) {
         List<DemoProductSeed> seeds = Arrays.asList(
-                new DemoProductSeed("p-macbook", "MacBook Air M1 8+256", "轻度办公，续航正常，附赠电脑包", "4899", "数码", "95新", "AVAILABLE", "https://images.unsplash.com/photo-1517336714739-489689fd1ca8?w=1200", "alice"),
-                new DemoProductSeed("p-ipad", "iPad 9 64G 国行", "仅课堂记笔记使用，机身无磕碰", "1899", "数码", "9成新", "AVAILABLE", "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=1200", "alice"),
-                new DemoProductSeed("p-bike", "捷安特山地车", "可正常骑行，刹车灵敏", "680", "出行", "8成新", "AVAILABLE", "https://images.unsplash.com/photo-1507035895480-2b3156c31fc8?w=1200", "bob"),
-                new DemoProductSeed("p-keyboard", "罗技机械键盘", "茶轴，灯效正常，带原盒", "260", "数码", "9成新", "AVAILABLE", "https://images.unsplash.com/photo-1511467687858-23d96c32e4ae?w=1200", "bob"),
-                new DemoProductSeed("p-calculus", "高等数学教材上下册", "笔记较全，适合期末复习", "45", "书籍", "8成新", "AVAILABLE", "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=1200", "charlie"),
-                new DemoProductSeed("p-java", "Java 核心技术卷 I", "无缺页，少量划线", "38", "书籍", "9成新", "AVAILABLE", "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=1200", "charlie"),
-                new DemoProductSeed("p-ricecooker", "小熊电饭煲 2L", "宿舍可用，功能正常", "88", "生活电器", "8成新", "AVAILABLE", "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=1200", "diana"),
-                new DemoProductSeed("p-lamp", "护眼台灯", "三档亮度，支持充电", "39", "生活用品", "9成新", "AVAILABLE", "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=1200", "diana"),
-                new DemoProductSeed("p-headset", "索尼头戴式耳机", "音质正常，耳罩轻微磨损", "420", "数码", "8成新", "AVAILABLE", "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=1200", "eric"),
-                new DemoProductSeed("p-monitor", "27寸显示器 2K", "毕业转让，支持高刷", "760", "数码", "9成新", "AVAILABLE", "https://images.unsplash.com/photo-1527443224154-c4e5c1a6f4e9?w=1200", "fiona"),
-                new DemoProductSeed("p-badminton", "羽毛球拍 2支装", "含拍包，适合新手", "120", "运动", "9成新", "AVAILABLE", "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=1200", "george"),
-                new DemoProductSeed("p-ukulele", "21寸尤克里里", "音准正常，赠调音器", "150", "乐器", "8成新", "AVAILABLE", "https://images.unsplash.com/photo-1525201548942-d8732f6617a0?w=1200", "helen"),
-                new DemoProductSeed("p-printer", "惠普打印机", "可打印扫描，墨盒余量充足", "310", "数码", "8成新", "AVAILABLE", "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=1200", "ivan"),
-                new DemoProductSeed("p-sneaker", "耐克运动鞋 42码", "尺码不合适，几乎全新", "220", "服饰", "95新", "AVAILABLE", "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1200", "jenny"),
-                new DemoProductSeed("p-chair", "人体工学椅", "靠背可调，久坐舒服", "260", "家具", "8成新", "AVAILABLE", "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=1200", "alice"),
-                new DemoProductSeed("p-router", "小米千兆路由器", "信号稳定，配件齐全", "120", "数码", "9成新", "AVAILABLE", "https://images.unsplash.com/photo-1647427060118-4911c9821b82?w=1200", "bob")
+                new DemoProductSeed("p-macbook", "MacBook Air M1 8+256", "轻度办公，续航正常，附赠电脑包", "4899", "6999", "数码", "95新", "主校区", "AVAILABLE", "https://images.unsplash.com/photo-1517336714739-489689fd1ca8?w=1200", "alice"),
+                new DemoProductSeed("p-ipad", "iPad 9 64G 国行", "仅课堂记笔记使用，机身无磕碰", "1899", "2599", "数码", "9成新", "主校区", "AVAILABLE", "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=1200", "alice"),
+                new DemoProductSeed("p-bike", "捷安特山地车", "可正常骑行，刹车灵敏", "680", "1299", "出行", "8成新", "主校区", "AVAILABLE", "https://images.unsplash.com/photo-1507035895480-2b3156c31fc8?w=1200", "bob"),
+                new DemoProductSeed("p-keyboard", "罗技机械键盘", "茶轴，灯效正常，带原盒", "260", "499", "数码", "9成新", "主校区", "AVAILABLE", "https://images.unsplash.com/photo-1511467687858-23d96c32e4ae?w=1200", "bob"),
+                new DemoProductSeed("p-calculus", "高等数学教材上下册", "笔记较全，适合期末复习", "45", "86", "书籍", "8成新", "东校区", "AVAILABLE", "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=1200", "charlie"),
+                new DemoProductSeed("p-java", "Java 核心技术卷 I", "无缺页，少量划线", "38", "79", "书籍", "9成新", "东校区", "AVAILABLE", "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=1200", "charlie"),
+                new DemoProductSeed("p-ricecooker", "小熊电饭煲 2L", "宿舍可用，功能正常", "88", "179", "生活电器", "8成新", "西校区", "AVAILABLE", "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=1200", "diana"),
+                new DemoProductSeed("p-lamp", "护眼台灯", "三档亮度，支持充电", "39", "89", "生活用品", "9成新", "西校区", "AVAILABLE", "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=1200", "diana"),
+                new DemoProductSeed("p-headset", "索尼头戴式耳机", "音质正常，耳罩轻微磨损", "420", "899", "数码", "8成新", "主校区", "AVAILABLE", "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=1200", "eric"),
+                new DemoProductSeed("p-monitor", "27寸显示器 2K", "毕业转让，支持高刷", "760", "1499", "数码", "9成新", "东校区", "AVAILABLE", "https://images.unsplash.com/photo-1527443224154-c4e5c1a6f4e9?w=1200", "fiona"),
+                new DemoProductSeed("p-badminton", "羽毛球拍 2支装", "含拍包，适合新手", "120", "269", "运动", "9成新", "西校区", "AVAILABLE", "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=1200", "george"),
+                new DemoProductSeed("p-ukulele", "21寸尤克里里", "音准正常，赠调音器", "150", "299", "乐器", "8成新", "主校区", "AVAILABLE", "https://images.unsplash.com/photo-1525201548942-d8732f6617a0?w=1200", "helen"),
+                new DemoProductSeed("p-printer", "惠普打印机", "可打印扫描，墨盒余量充足", "310", "699", "数码", "8成新", "东校区", "AVAILABLE", "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=1200", "ivan"),
+                new DemoProductSeed("p-sneaker", "耐克运动鞋 42码", "尺码不合适，几乎全新", "220", "499", "服饰", "95新", "西校区", "AVAILABLE", "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1200", "jenny"),
+                new DemoProductSeed("p-chair", "人体工学椅", "靠背可调，久坐舒服", "260", "599", "家具", "8成新", "主校区", "AVAILABLE", "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=1200", "alice"),
+                new DemoProductSeed("p-router", "小米千兆路由器", "信号稳定，配件齐全", "120", "249", "数码", "9成新", "主校区", "AVAILABLE", "https://images.unsplash.com/photo-1647427060118-4911c9821b82?w=1200", "bob")
         );
 
         Map<String, Product> existingByKey = new HashMap<>();
@@ -140,17 +208,19 @@ public class DemoDataInitializer implements CommandLineRunner {
             Product product = existingByKey.get(key);
             if (product == null) {
                 product = new Product();
-                product.setName(seed.name);
-                product.setDescription(seed.description);
-                product.setPrice(new BigDecimal(seed.price));
-                product.setCategory(seed.category);
-                product.setCondition(seed.condition);
-                product.setStatus(seed.status);
-                product.setImageUrl(seed.imageUrl);
                 product.setSeller(seller);
-                product = productRepository.save(product);
                 existingByKey.put(key, product);
             }
+            product.setName(seed.name);
+            product.setDescription(seed.description);
+            product.setPrice(new BigDecimal(seed.price));
+            product.setOriginalPrice(new BigDecimal(seed.originalPrice));
+            product.setCategory(seed.category);
+            product.setCondition(seed.condition);
+            product.setCampus(seed.campus);
+            product.setStatus(seed.status);
+            product.setImageUrl(seed.imageUrl);
+            product = productRepository.save(product);
             productMap.put(seed.key, product);
         }
         return productMap;
@@ -339,8 +409,10 @@ public class DemoDataInitializer implements CommandLineRunner {
         private final String school;
         private final String studentNo;
         private final boolean verified;
+        private final String role;
+        private final boolean enabled;
 
-        private DemoUserSeed(String username, String password, String email, String name, String phoneNumber, String school, String studentNo, boolean verified) {
+        private DemoUserSeed(String username, String password, String email, String name, String phoneNumber, String school, String studentNo, boolean verified, String role, boolean enabled) {
             this.username = username;
             this.password = password;
             this.email = email;
@@ -349,6 +421,8 @@ public class DemoDataInitializer implements CommandLineRunner {
             this.school = school;
             this.studentNo = studentNo;
             this.verified = verified;
+            this.role = role;
+            this.enabled = enabled;
         }
     }
 
@@ -357,19 +431,23 @@ public class DemoDataInitializer implements CommandLineRunner {
         private final String name;
         private final String description;
         private final String price;
+        private final String originalPrice;
         private final String category;
         private final String condition;
+        private final String campus;
         private final String status;
         private final String imageUrl;
         private final String sellerUsername;
 
-        private DemoProductSeed(String key, String name, String description, String price, String category, String condition, String status, String imageUrl, String sellerUsername) {
+        private DemoProductSeed(String key, String name, String description, String price, String originalPrice, String category, String condition, String campus, String status, String imageUrl, String sellerUsername) {
             this.key = key;
             this.name = name;
             this.description = description;
             this.price = price;
+            this.originalPrice = originalPrice;
             this.category = category;
             this.condition = condition;
+            this.campus = campus;
             this.status = status;
             this.imageUrl = imageUrl;
             this.sellerUsername = sellerUsername;

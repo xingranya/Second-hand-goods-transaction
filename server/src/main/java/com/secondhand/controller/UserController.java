@@ -5,9 +5,11 @@ import com.secondhand.dto.VerifyRequest;
 import com.secondhand.dto.VerifyResponse;
 import com.secondhand.entity.Transaction;
 import com.secondhand.entity.User;
+import com.secondhand.repository.MessageRepository;
 import com.secondhand.repository.ProductRepository;
 import com.secondhand.repository.TransactionRepository;
 import com.secondhand.repository.UserRepository;
+import com.secondhand.repository.WantedPostRepository;
 import com.secondhand.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -37,20 +39,35 @@ public class UserController {
     @Autowired
     private TransactionRepository transactionRepository;
 
+    @Autowired
+    private WantedPostRepository wantedPostRepository;
+
+    @Autowired
+    private MessageRepository messageRepository;
+
     @GetMapping("/me")
     public ResponseEntity<UserProfileResponse> getCurrentUserProfile(Principal principal) {
         User user = userService.getUserByUsername(principal.getName());
-        int publishCount = productRepository.findBySellerId(user.getId()).size();
-        int soldCount = transactionRepository.findBySellerIdAndStatus(user.getId(), "COMPLETED").size();
+        long publishCount = productRepository.countBySellerId(user.getId());
+        long soldCount = transactionRepository.findBySellerIdAndStatus(user.getId(), "COMPLETED").size();
+        long wantedCount = wantedPostRepository.countByPublisherId(user.getId());
+        long orderCount = transactionRepository.countByBuyerId(user.getId()) + transactionRepository.countBySellerId(user.getId());
+        long unreadCount = messageRepository.countUnreadMessages(user.getId());
         Optional<Transaction> latestOrder = transactionRepository.findTopByBuyerIdOrderByCreatedAtDesc(user.getId());
 
         UserProfileResponse response = new UserProfileResponse(
                 user.getId(),
+                user.getUsername(),
                 displayName(user),
                 user.getSchool(),
                 user.isVerified(),
-                publishCount,
-                soldCount,
+                user.getRole(),
+                user.isEnabled(),
+                (int) publishCount,
+                (int) soldCount,
+                (int) wantedCount,
+                (int) orderCount,
+                unreadCount,
                 0,
                 latestOrder.map(item -> "o-" + item.getId()).orElse("")
         );

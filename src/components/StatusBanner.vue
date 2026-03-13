@@ -1,7 +1,7 @@
 <template>
   <div v-if="visible" class="status-banner">
     <span class="material-symbols-outlined">info</span>
-    当前为演示数据模式（部分接口不可用，已自动回退到 mock 数据）
+    当前显示的是备用数据内容，部分信息可能不是最新状态。
   </div>
 </template>
 

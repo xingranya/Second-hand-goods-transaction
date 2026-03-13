@@ -3,6 +3,7 @@
     <article v-if="!authed" class="card auth-card">
       <h2>消息中心</h2>
       <p>当前未登录，无法拉取真实会话数据。请先登录后再访问。</p>
+      <RouterLink class="btn btn-primary" :to="loginLocation">去登录</RouterLink>
     </article>
     <div v-else class="layout">
       <MessageConversationList
@@ -12,7 +13,10 @@
       />
       <section class="card chat-box">
         <header>
-          <h2>{{ chatStore.activeConversation?.peerUser?.name || "请选择会话" }}</h2>
+          <div>
+            <h2>{{ chatStore.activeConversation?.peerUser?.name || "请选择会话" }}</h2>
+            <p class="chat-summary">会话数 {{ chatStore.conversations.length }} · 未读 {{ unreadCount }}</p>
+          </div>
         </header>
         <article class="product-brief">
           <p class="brief-title">关联商品</p>
@@ -60,24 +64,32 @@
 
 <script setup>
 import { computed, onMounted, ref, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { storeToRefs } from "pinia";
+import { RouterLink, useRoute, useRouter } from "vue-router";
 import MessageConversationList from "@/components/MessageConversationList.vue";
 import { useChatStore } from "@/stores/chat";
 import { useMarketStore } from "@/stores/market";
 import { useOrderStore } from "@/stores/order";
-import { hasToken } from "@/api/auth";
+import { useUserStore } from "@/stores/user";
+import { createLoginLocation } from "@/utils/auth";
 
 const route = useRoute();
 const router = useRouter();
 const chatStore = useChatStore();
 const marketStore = useMarketStore();
 const orderStore = useOrderStore();
+const userStore = useUserStore();
+const { isAuthenticated } = storeToRefs(userStore);
 const draft = ref("");
-const authed = hasToken();
+const authed = computed(() => isAuthenticated.value);
+const loginLocation = computed(() => createLoginLocation(route));
 const loadingProduct = ref(false);
 const purchasing = ref(false);
 const purchaseError = ref("");
 const fallbackImage = "https://images.unsplash.com/photo-1521017432531-fbd92d768814?w=1200";
+const unreadCount = computed(() =>
+  chatStore.conversations.reduce((sum, item) => sum + Number(item.unreadCount || 0), 0)
+);
 
 const conversationQueryId = computed(() => {
   const raw = route.query.peerUserId || route.query.conversation;
@@ -186,7 +198,7 @@ watch(
 }
 
 .auth-card p {
-  margin: 0;
+  margin: 0 0 12px;
   color: var(--muted);
 }
 
@@ -213,6 +225,12 @@ header {
 h2 {
   margin: 0;
   font-size: 18px;
+}
+
+.chat-summary {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13px;
 }
 
 .product-brief {

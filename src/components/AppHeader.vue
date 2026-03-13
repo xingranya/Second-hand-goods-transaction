@@ -17,24 +17,30 @@
         </RouterLink>
       </nav>
       <div class="header-tools">
+        <RouterLink v-if="authed && userStore.isAdmin" class="auth-entry" to="/admin/dashboard">后台</RouterLink>
         <RouterLink class="publish-entry" to="/publish">
           <span class="material-symbols-outlined">add_circle</span>
           发布
         </RouterLink>
         <RouterLink v-if="!authed" class="auth-entry" to="/login">登录</RouterLink>
-        <button v-else class="auth-entry logout" @click="logout">退出</button>
+        <button v-else class="auth-entry logout" @click="logout">
+          {{ displayName }}
+        </button>
       </div>
     </div>
   </header>
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { computed } from "vue";
+import { storeToRefs } from "pinia";
 import { RouterLink, useRoute, useRouter } from "vue-router";
-import { clearToken, hasToken } from "@/api/auth";
+import { useUserStore } from "@/stores/user";
 
 const route = useRoute();
 const router = useRouter();
+const userStore = useUserStore();
+const { isAuthenticated, profile } = storeToRefs(userStore);
 const navItems = [
   { label: "首页", to: "/" },
   { label: "求购", to: "/wanted" },
@@ -42,30 +48,15 @@ const navItems = [
   { label: "我的", to: "/profile" }
 ];
 
-const tokenState = ref(hasToken());
 const current = computed(() => route.path);
-const authed = computed(() => tokenState.value);
+const authed = computed(() => isAuthenticated.value);
+const displayName = computed(() => profile.value?.name || profile.value?.username || "退出");
 const isActive = (target) => (target === "/" ? current.value === "/" : current.value.startsWith(target));
 
-function refreshAuthState() {
-  tokenState.value = hasToken();
-}
-
 function logout() {
-  clearToken();
-  tokenState.value = false;
+  userStore.logout();
   router.push("/login");
 }
-
-onMounted(() => {
-  window.addEventListener("auth-changed", refreshAuthState);
-  window.addEventListener("storage", refreshAuthState);
-});
-
-onUnmounted(() => {
-  window.removeEventListener("auth-changed", refreshAuthState);
-  window.removeEventListener("storage", refreshAuthState);
-});
 </script>
 
 <style scoped>

@@ -3,11 +3,16 @@
     <article v-if="!authed" class="card detail">
       <h2>订单详情</h2>
       <p>当前未登录，无法访问真实订单数据。</p>
+      <RouterLink class="btn btn-primary" :to="loginLocation">去登录</RouterLink>
     </article>
     <template v-else>
       <OrderStepBar :status="order?.status" />
       <article v-if="order" class="card detail">
         <h2>订单详情</h2>
+        <div class="overview-tags">
+          <span class="tag">订单状态：{{ order.status }}</span>
+          <span class="tag">支付方式：{{ order.payMethod }}</span>
+        </div>
         <p><strong>订单编号：</strong>{{ order.id }}</p>
         <p><strong>创建时间：</strong>{{ order.createTime }}</p>
         <p><strong>支付方式：</strong>{{ order.payMethod }}</p>
@@ -34,16 +39,21 @@
 
 <script setup>
 import { computed, onMounted, ref, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { storeToRefs } from "pinia";
+import { RouterLink, useRoute, useRouter } from "vue-router";
 import { useOrderStore } from "@/stores/order";
 import OrderStepBar from "@/components/OrderStepBar.vue";
-import { hasToken } from "@/api/auth";
+import { useUserStore } from "@/stores/user";
+import { createLoginLocation } from "@/utils/auth";
 
 const route = useRoute();
 const router = useRouter();
 const store = useOrderStore();
+const userStore = useUserStore();
+const { isAuthenticated } = storeToRefs(userStore);
 const order = computed(() => store.currentOrder);
-const authed = hasToken();
+const authed = computed(() => isAuthenticated.value);
+const loginLocation = computed(() => createLoginLocation(route));
 const errorMessage = ref("");
 
 const actionMode = computed(() => {
@@ -71,14 +81,14 @@ const canAction = computed(() => {
 });
 
 onMounted(() => {
-  if (!authed) return;
+  if (!authed.value) return;
   store.loadOrder(route.params.id);
 });
 
 watch(
   () => route.params.id,
   (id) => {
-    if (!authed || !id) return;
+    if (!authed.value || !id) return;
     store.loadOrder(id);
   }
 );
@@ -129,6 +139,13 @@ p {
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 12px;
+}
+
+.overview-tags {
+  margin: 10px 0 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .item-row {

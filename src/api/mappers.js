@@ -46,6 +46,7 @@ export function mapProduct(raw = {}) {
     originPrice: Number(pick(raw, ["originPrice", "originalPrice", "purchasePrice"], 0)),
     condition: pick(raw, ["condition", "quality", "goodsStatus"], "未知成色"),
     campus: pick(raw, ["campus", "campusName", "location", "schoolArea", "school"], "主校区"),
+    status: pick(raw, ["status"], "AVAILABLE"),
     images: normalizeImages(raw),
     tags: normalizeTags(raw),
     publishTime: pick(raw, ["publishTime", "createdAt", "createTime", "gmtCreate"], ""),
@@ -61,19 +62,43 @@ export function mapProduct(raw = {}) {
 
 export function mapOrder(raw = {}) {
   const amount = Number(pick(raw, ["totalAmount", "amount", "payAmount"], 0));
-  const items = pick(raw, ["items", "orderItems"], []).map((item, index) => ({
-    id: String(pick(item, ["id", "productId"], `${index}`)),
-    title: pick(item, ["title", "name", "productName"], "未命名商品"),
-    count: Number(pick(item, ["count", "quantity"], 1)),
-    price: Number(pick(item, ["price", "unitPrice"], 0))
-  }));
+  const rawItems = pick(raw, ["items", "orderItems"], []);
+  const items = Array.isArray(rawItems) && rawItems.length
+    ? rawItems.map((item, index) => ({
+        id: String(pick(item, ["id", "productId"], `${index}`)),
+        title: pick(item, ["title", "name", "productName"], "未命名商品"),
+        count: Number(pick(item, ["count", "quantity"], 1)),
+        price: Number(pick(item, ["price", "unitPrice"], 0))
+      }))
+    : [
+        {
+          id: String(pick(raw, ["productId"], "0")),
+          title: pick(raw, ["productName"], "未命名商品"),
+          count: 1,
+          price: amount
+        }
+      ];
+
+  const buyerInfo = pick(raw, ["buyer"], null);
+  const sellerInfo = pick(raw, ["seller"], null);
+
   return {
     id: String(pick(raw, ["id", "orderId"], "")),
     status: normalizeOrderStatus(pick(raw, ["status", "orderStatus", "stateName"], "已下单")),
     items,
     totalAmount: amount,
-    buyer: pick(raw, ["buyer"], {}),
-    seller: pick(raw, ["seller"], {}),
+    buyer: buyerInfo && typeof buyerInfo === "object"
+      ? buyerInfo
+      : {
+          id: String(pick(raw, ["buyerId"], "")),
+          name: pick(raw, ["buyerName"], "未知买家")
+        },
+    seller: sellerInfo && typeof sellerInfo === "object"
+      ? sellerInfo
+      : {
+          id: String(pick(raw, ["sellerId"], "")),
+          name: pick(raw, ["sellerName"], "未知卖家")
+        },
     payMethod: pick(raw, ["payMethod", "paymentMethod", "payTypeName"], "平台担保"),
     createTime: pick(raw, ["createTime", "createdAt", "gmtCreate"], "")
   };

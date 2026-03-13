@@ -30,27 +30,32 @@
 
 <script setup>
 import { computed, onMounted, ref } from "vue";
+import { storeToRefs } from "pinia";
 import { useRoute, useRouter } from "vue-router";
 import { useMarketStore } from "@/stores/market";
 import { useOrderStore } from "@/stores/order";
-import { hasToken } from "@/api/auth";
+import { useUserStore } from "@/stores/user";
+import { createLoginLocation } from "@/utils/auth";
 
 const route = useRoute();
 const router = useRouter();
 const marketStore = useMarketStore();
 const orderStore = useOrderStore();
+const userStore = useUserStore();
+const { isAuthenticated } = storeToRefs(userStore);
 const submittingOrder = ref(false);
 const errorMessage = ref("");
 
 const product = computed(() => marketStore.currentProduct);
+const authed = computed(() => isAuthenticated.value);
 
 onMounted(() => {
   marketStore.loadProduct(route.params.id);
 });
 
 function toMessage() {
-  if (!hasToken()) {
-    router.push("/login");
+  if (!authed.value) {
+    router.push(createLoginLocation(route));
     return;
   }
   if (!product.value?.sellerId) return;
@@ -65,8 +70,8 @@ function toMessage() {
 }
 
 async function toOrder() {
-  if (!hasToken()) {
-    router.push("/login");
+  if (!authed.value) {
+    router.push(createLoginLocation(route));
     return;
   }
   if (!product.value?.id || submittingOrder.value) return;

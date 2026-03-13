@@ -3,7 +3,7 @@
     <article v-if="!authed" class="card panel">
       <h2>最近订单</h2>
       <p>当前未登录，请先登录后查看订单。</p>
-      <RouterLink class="btn btn-primary" to="/login">去登录</RouterLink>
+      <RouterLink class="btn btn-primary" :to="loginLocation">去登录</RouterLink>
     </article>
     <template v-else>
       <header class="head">
@@ -40,15 +40,19 @@
 </template>
 
 <script setup>
-import { onMounted } from "vue";
-import { RouterLink } from "vue-router";
-import { hasToken } from "@/api/auth";
+import { computed, onMounted } from "vue";
+import { storeToRefs } from "pinia";
+import { RouterLink, useRoute } from "vue-router";
 import { useOrderStore } from "@/stores/order";
 import { useUserStore } from "@/stores/user";
+import { createLoginLocation } from "@/utils/auth";
 
-const authed = hasToken();
+const route = useRoute();
 const orderStore = useOrderStore();
 const userStore = useUserStore();
+const { isAuthenticated } = storeToRefs(userStore);
+const authed = computed(() => isAuthenticated.value);
+const loginLocation = computed(() => createLoginLocation(route));
 
 function resolveRole(item) {
   const meId = Number(userStore.profile?.id || 0);
@@ -66,7 +70,7 @@ function resolvePeer(item) {
 }
 
 onMounted(async () => {
-  if (!authed) return;
+  if (!authed.value) return;
   if (!userStore.profile?.id) {
     await userStore.loadProfile();
   }

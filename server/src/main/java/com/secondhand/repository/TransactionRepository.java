@@ -19,5 +19,11 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     
     List<Transaction> findBySellerIdAndStatus(Long sellerId, String status);
 
+    long countByBuyerId(Long buyerId);
+
+    long countBySellerId(Long sellerId);
+
+    long countByStatus(String status);
+
     Optional<Transaction> findTopByBuyerIdOrderByCreatedAtDesc(Long buyerId);
-} 
+}

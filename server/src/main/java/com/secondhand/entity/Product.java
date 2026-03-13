@@ -22,6 +22,9 @@ public class Product {
     @Column(nullable = false)
     private BigDecimal price;
 
+    @Column(name = "original_price")
+    private BigDecimal originalPrice;
+
     @Column(name = "image_url")
     private String imageUrl;
 
@@ -30,6 +33,9 @@ public class Product {
 
     @Column(name = "`condition`")
     private String condition;
+
+    @Column(name = "campus")
+    private String campus;
 
     @ManyToOne
     @JoinColumn(name = "seller_id", nullable = false)

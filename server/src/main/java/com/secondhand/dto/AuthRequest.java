@@ -1,7 +1,11 @@
- package com.secondhand.dto;
+package com.secondhand.dto;
+
+import javax.validation.constraints.NotBlank;
 
 public class AuthRequest {
+    @NotBlank(message = "用户名不能为空")
     private String username;
+    @NotBlank(message = "密码不能为空")
     private String password;
 
     // Getters and Setters

@@ -8,6 +8,7 @@ import com.secondhand.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
 import java.util.Collections;
 
 @RestController
@@ -36,7 +38,7 @@ public class AuthController {
     private UserService userService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody AuthRequest authRequest) {
+    public ResponseEntity<?> login(@Valid @RequestBody AuthRequest authRequest) {
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword())
@@ -44,10 +46,13 @@ public class AuthController {
 
             final UserDetails userDetails = userDetailsService.loadUserByUsername(authRequest.getUsername());
             final String token = jwtTokenUtil.generateToken(userDetails);
+            final User currentUser = userService.getUserByUsername(userDetails.getUsername());
 
-            return ResponseEntity.ok(new AuthResponse(token, userDetails.getUsername()));
+            return ResponseEntity.ok(new AuthResponse(token, userDetails.getUsername(), currentUser.getRole()));
         } catch (BadCredentialsException ex) {
             return ResponseEntity.status(401).body(Collections.singletonMap("message", "用户名或密码错误"));
+        } catch (DisabledException ex) {
+            return ResponseEntity.status(403).body(Collections.singletonMap("message", "账号已被禁用，请联系管理员"));
         }
     }
 
@@ -57,7 +62,7 @@ public class AuthController {
             User registeredUser = userService.registerUser(user);
             final UserDetails userDetails = userDetailsService.loadUserByUsername(registeredUser.getUsername());
             final String token = jwtTokenUtil.generateToken(userDetails);
-            return ResponseEntity.ok(new AuthResponse(token, userDetails.getUsername()));
+            return ResponseEntity.ok(new AuthResponse(token, userDetails.getUsername(), registeredUser.getRole()));
         } catch (RuntimeException ex) {
             return ResponseEntity.badRequest().body(Collections.singletonMap("message", ex.getMessage()));
         }

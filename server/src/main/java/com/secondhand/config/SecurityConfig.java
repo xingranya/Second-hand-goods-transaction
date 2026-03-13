@@ -1,7 +1,7 @@
 package com.secondhand.config;
 
+import com.secondhand.security.JwtAuthenticationEntryPoint;
 import com.secondhand.security.JwtAuthenticationFilter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -28,23 +28,23 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 // 通过创建一个 SecurityFilterChain Bean 来替代 WebSecurityConfigurerAdapter 的功能
 public class SecurityConfig {
 
-    @Autowired
-    private UserDetailsService userDetailsService;
-
-    @Autowired
-    private JwtAuthenticationFilter jwtAuthenticationFilter;
-
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            JwtAuthenticationFilter jwtAuthenticationFilter,
+            JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint) throws Exception {
         http
             .cors().and()
             .csrf().disable()
             .authorizeRequests(auth -> auth
                 .antMatchers("/", "/api/auth/**", "/api/system/db-health").permitAll()
+                .antMatchers(HttpMethod.GET, "/api/system/summary").permitAll()
                 .antMatchers(HttpMethod.GET, "/api/products/**").permitAll()
                 .antMatchers(HttpMethod.GET, "/api/wanted").permitAll()
+                .antMatchers("/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
+            .exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthenticationEntryPoint))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -63,10 +63,13 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
+    public AuthenticationManager authenticationManager(
+            HttpSecurity http,
+            UserDetailsService userDetailsService,
+            PasswordEncoder passwordEncoder) throws Exception {
         return http.getSharedObject(AuthenticationManagerBuilder.class)
             .userDetailsService(userDetailsService)
-            .passwordEncoder(passwordEncoder())
+            .passwordEncoder(passwordEncoder)
             .and()
             .build();
     }

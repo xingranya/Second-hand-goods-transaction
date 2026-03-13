@@ -3,6 +3,7 @@
     <article v-if="!authed" class="card form">
       <h2>学生实名认证</h2>
       <p class="hint">当前未登录，请先登录后再进行实名认证。</p>
+      <RouterLink class="btn btn-primary" :to="loginLocation">去登录</RouterLink>
     </article>
     <form v-else class="card form" @submit.prevent="submit">
       <h2>学生实名认证</h2>
@@ -27,13 +28,18 @@
 </template>
 
 <script setup>
-import { reactive, ref } from "vue";
+import { computed, reactive, ref } from "vue";
+import { storeToRefs } from "pinia";
+import { RouterLink, useRoute } from "vue-router";
 import { useUserStore } from "@/stores/user";
-import { hasToken } from "@/api/auth";
+import { createLoginLocation } from "@/utils/auth";
 
+const route = useRoute();
 const userStore = useUserStore();
+const { isAuthenticated } = storeToRefs(userStore);
 const result = ref("");
-const authed = hasToken();
+const authed = computed(() => isAuthenticated.value);
+const loginLocation = computed(() => createLoginLocation(route));
 const form = reactive({
   name: "",
   studentNo: "",

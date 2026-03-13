@@ -3,7 +3,7 @@
     <article v-if="!authed" class="card panel">
       <h2>订单付款</h2>
       <p>当前未登录，请先登录后付款。</p>
-      <RouterLink class="btn btn-primary" to="/login">去登录</RouterLink>
+      <RouterLink class="btn btn-primary" :to="loginLocation">去登录</RouterLink>
     </article>
     <article v-else-if="!order" class="card panel">加载订单中...</article>
     <article v-else class="card panel">
@@ -53,14 +53,19 @@
 
 <script setup>
 import { computed, onMounted, ref, watch } from "vue";
+import { storeToRefs } from "pinia";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 import { useOrderStore } from "@/stores/order";
-import { hasToken } from "@/api/auth";
+import { useUserStore } from "@/stores/user";
+import { createLoginLocation } from "@/utils/auth";
 
 const route = useRoute();
 const router = useRouter();
 const store = useOrderStore();
-const authed = hasToken();
+const userStore = useUserStore();
+const { isAuthenticated } = storeToRefs(userStore);
+const authed = computed(() => isAuthenticated.value);
+const loginLocation = computed(() => createLoginLocation(route));
 const order = computed(() => store.currentOrder);
 const selectedMethod = ref("wechat");
 const bankCardNo = ref("");
@@ -88,14 +93,14 @@ const payButtonText = computed(() => {
 });
 
 onMounted(() => {
-  if (!authed) return;
+  if (!authed.value) return;
   store.loadOrder(route.params.id);
 });
 
 watch(
   () => route.params.id,
   (id) => {
-    if (!authed || !id) return;
+    if (!authed.value || !id) return;
     store.loadOrder(id);
   }
 );

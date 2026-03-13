@@ -33,7 +33,11 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getPassword(),
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
+                user.isEnabled(),
+                true,
+                true,
+                true,
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + resolveRole(user)))
         );
     }
 
@@ -48,6 +52,8 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         }
         
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setRole(resolveRole(user));
+        user.setEnabled(true);
         return userRepository.save(user);
     }
 
@@ -90,6 +96,8 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         if (userDetails.getPassword() != null && !userDetails.getPassword().isEmpty()) {
             user.setPassword(passwordEncoder.encode(userDetails.getPassword()));
         }
+        user.setRole(resolveRole(userDetails));
+        user.setEnabled(userDetails.isEnabled());
         
         return userRepository.save(user);
     }
@@ -110,4 +118,11 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     public boolean existsByEmail(String email) {
         return userRepository.existsByEmail(email);
     }
-} 
+
+    private String resolveRole(User user) {
+        if (user.getRole() == null || user.getRole().trim().isEmpty()) {
+            return "USER";
+        }
+        return user.getRole().trim().toUpperCase();
+    }
+}

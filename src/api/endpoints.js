@@ -4,6 +4,10 @@ export const productEndpoints = {
   create: [{ method: "post", url: "/products" }]
 };
 
+export const systemEndpoints = {
+  summary: [{ method: "get", url: "/system/summary" }]
+};
+
 export const messageEndpoints = {
   conversations: [{ method: "get", url: "/messages/conversations" }],
   detail: (peerUserId) => [{ method: "get", url: `/messages/conversations/${peerUserId}` }],
@@ -32,4 +36,15 @@ export const userEndpoints = {
 
 export const reviewEndpoints = {
   create: [{ method: "post", url: "/reviews" }]
+};
+
+export const adminEndpoints = {
+  stats: [{ method: "get", url: "/admin/dashboard/stats" }],
+  products: [{ method: "get", url: "/admin/products" }],
+  productStatus: (id, status) => [{ method: "patch", url: `/admin/products/${id}/status`, params: { status } }],
+  productDelete: (id) => [{ method: "delete", url: `/admin/products/${id}` }],
+  users: [{ method: "get", url: "/admin/users" }],
+  userEnabled: (id, enabled) => [{ method: "patch", url: `/admin/users/${id}/enabled`, params: { enabled } }],
+  userVerify: (id, verified) => [{ method: "patch", url: `/admin/users/${id}/verify`, params: { verified } }],
+  orders: [{ method: "get", url: "/admin/orders" }]
 };

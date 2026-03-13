@@ -9,13 +9,16 @@ function normalizeProducts(payload) {
 
 function toCreatePayload(payload = {}) {
   const image = Array.isArray(payload.images) ? payload.images[0] : "";
+  const tags = Array.isArray(payload.tags) ? payload.tags : [];
   return {
     name: payload.title || "",
     price: payload.price || 0,
+    originalPrice: payload.originPrice || 0,
     description: payload.description || "",
     condition: payload.condition || "",
+    campus: payload.campus || "主校区",
     imageUrl: image || "",
-    category: Array.isArray(payload.tags) ? payload.tags.join(",") : "",
+    category: tags[0] || "",
     status: "AVAILABLE"
   };
 }

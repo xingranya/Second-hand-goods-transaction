@@ -1,9 +1,23 @@
 <template>
   <section class="page-container wanted-page">
     <header class="head">
-      <h2>校园求购广场</h2>
+      <div>
+        <h2>校园求购广场</h2>
+        <p>展示同学们的即时需求，方便快速撮合校园内的二手交易。</p>
+      </div>
       <RouterLink class="btn btn-muted" :to="{ path: '/search', query: { keyword: '求购' } }">去搜索商品</RouterLink>
     </header>
+
+    <section class="summary-grid">
+      <article class="card summary-card">
+        <strong>{{ wantedList.length }}</strong>
+        <span>当前求购帖</span>
+      </article>
+      <article class="card summary-card">
+        <strong>{{ authed ? "已登录" : "未登录" }}</strong>
+        <span>{{ authed ? "可以直接发布和联系" : "登录后可发布求购并沟通" }}</span>
+      </article>
+    </section>
 
     <form v-if="authed" class="card publish-form" @submit.prevent="submitWanted">
       <h3>发布求购</h3>
@@ -39,16 +53,20 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
+import { storeToRefs } from "pinia";
 import { useRouter, RouterLink } from "vue-router";
 import WantedCard from "@/components/WantedCard.vue";
 import { createWantedPost, fetchWantedPosts } from "@/api/services/wanted";
-import { hasToken } from "@/api/auth";
+import { useUserStore } from "@/stores/user";
+import { createLoginLocation } from "@/utils/auth";
 
 const router = useRouter();
+const userStore = useUserStore();
+const { isAuthenticated } = storeToRefs(userStore);
 const wantedList = ref([]);
 const submitting = ref(false);
-const authed = hasToken();
+const authed = computed(() => isAuthenticated.value);
 const form = reactive({
   title: "",
   expectedPrice: "",
@@ -78,6 +96,10 @@ async function submitWanted() {
 }
 
 function contactUser(item) {
+  if (!authed.value) {
+    router.push(createLoginLocation({ fullPath: "/wanted" }));
+    return;
+  }
   if (!item?.publisher?.id) return;
   router.push({
     path: "/messages",
@@ -106,6 +128,33 @@ onMounted(loadData);
 
 h2 {
   margin: 0;
+}
+
+.head p {
+  margin: 6px 0 0;
+  color: var(--muted);
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.summary-card {
+  padding: 16px;
+  display: grid;
+  gap: 6px;
+}
+
+.summary-card strong {
+  font-size: 30px;
+  color: var(--primary-strong);
+}
+
+.summary-card span {
+  color: var(--muted);
 }
 
 .publish-form {
@@ -140,6 +189,15 @@ h2 {
 }
 
 @media (max-width: 720px) {
+  .head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
   .row {
     grid-template-columns: 1fr;
   }

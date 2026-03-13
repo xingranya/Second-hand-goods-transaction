@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import MainLayout from "@/layouts/MainLayout.vue";
+import AdminLayout from "@/layouts/AdminLayout.vue";
 import HomePage from "@/views/HomePage.vue";
 import SearchPage from "@/views/SearchPage.vue";
 import ProductPage from "@/views/ProductPage.vue";
@@ -13,7 +14,14 @@ import RecentOrdersPage from "@/views/RecentOrdersPage.vue";
 import ProfilePage from "@/views/ProfilePage.vue";
 import VerifyPage from "@/views/VerifyPage.vue";
 import LoginPage from "@/views/LoginPage.vue";
+import AdminLoginPage from "@/views/admin/AdminLoginPage.vue";
+import AdminDashboardPage from "@/views/admin/AdminDashboardPage.vue";
+import AdminProductsPage from "@/views/admin/AdminProductsPage.vue";
+import AdminUsersPage from "@/views/admin/AdminUsersPage.vue";
+import AdminOrdersPage from "@/views/admin/AdminOrdersPage.vue";
 import NotFoundPage from "@/views/NotFoundPage.vue";
+import { useUserStore } from "@/stores/user";
+import { createAdminLoginLocation, createLoginLocation } from "@/utils/auth";
 
 const routes = [
   {
@@ -35,6 +43,17 @@ const routes = [
       { path: "login", name: "login", component: LoginPage }
     ]
   },
+  {
+    path: "/admin",
+    component: AdminLayout,
+    children: [
+      { path: "dashboard", name: "adminDashboard", component: AdminDashboardPage },
+      { path: "products", name: "adminProducts", component: AdminProductsPage },
+      { path: "users", name: "adminUsers", component: AdminUsersPage },
+      { path: "orders", name: "adminOrders", component: AdminOrdersPage }
+    ]
+  },
+  { path: "/admin/login", name: "adminLogin", component: AdminLoginPage },
   { path: "/:pathMatch(.*)*", name: "notFound", component: NotFoundPage }
 ];
 
@@ -44,6 +63,48 @@ const router = createRouter({
   scrollBehavior() {
     return { top: 0 };
   }
+});
+
+router.beforeEach(async (to) => {
+  const userStore = useUserStore();
+  const isAdminRoute = to.path.startsWith("/admin") && to.path !== "/admin/login";
+  const isUserLoginPage = to.path === "/login";
+  const isAdminLoginPage = to.path === "/admin/login";
+
+  userStore.syncAuthState();
+
+  if (userStore.isAuthenticated && !userStore.profileLoaded) {
+    try {
+      await userStore.loadProfile();
+    } catch {
+      userStore.logout();
+    }
+  }
+
+  if (isAdminRoute) {
+    if (!userStore.isAuthenticated) {
+      return createAdminLoginLocation(to);
+    }
+    if (!userStore.isAdmin) {
+      return "/profile";
+    }
+  }
+
+  if (isUserLoginPage && userStore.isAuthenticated) {
+    return "/profile";
+  }
+
+  if (isAdminLoginPage) {
+    if (!userStore.isAuthenticated) {
+      return true;
+    }
+    if (userStore.isAdmin) {
+      return "/admin/dashboard";
+    }
+    return createLoginLocation(to);
+  }
+
+  return true;
 });
 
 export default router;
