@@ -1,0 +1,147 @@
+{
+  "id": "2026-04-15-162012",
+  "generated_at": "2026-04-15T08:20:12.1043851Z",
+  "language": "zh",
+  "pages": [
+    {
+      "slug": "1-xiang-mu-gai-shu",
+      "title": "项目概述",
+      "file": "1-xiang-mu-gai-shu.md",
+      "section": "入门指南",
+      "level": "Beginner"
+    },
+    {
+      "slug": "2-kuai-su-kai-shi",
+      "title": "快速开始",
+      "file": "2-kuai-su-kai-shi.md",
+      "section": "入门指南",
+      "level": "Beginner"
+    },
+    {
+      "slug": "3-ji-zhu-zhan-yu-mu-lu-jie-gou",
+      "title": "技术栈与目录结构",
+      "file": "3-ji-zhu-zhan-yu-mu-lu-jie-gou.md",
+      "section": "深度解析",
+      "group": "前端架构",
+      "level": "Intermediate"
+    },
+    {
+      "slug": "4-zhuang-tai-guan-li-she-ji",
+      "title": "状态管理设计",
+      "file": "4-zhuang-tai-guan-li-she-ji.md",
+      "section": "深度解析",
+      "group": "前端架构",
+      "level": "Intermediate"
+    },
+    {
+      "slug": "5-lu-you-yu-quan-xian-shou-wei",
+      "title": "路由与权限守卫",
+      "file": "5-lu-you-yu-quan-xian-shou-wei.md",
+      "section": "深度解析",
+      "group": "前端架构",
+      "level": "Intermediate"
+    },
+    {
+      "slug": "6-ye-mian-zu-jian-ti-xi",
+      "title": "页面组件体系",
+      "file": "6-ye-mian-zu-jian-ti-xi.md",
+      "section": "深度解析",
+      "group": "前端架构",
+      "level": "Intermediate"
+    },
+    {
+      "slug": "7-fen-ceng-jie-gou-yu-kong-zhi-qi-she-ji",
+      "title": "分层结构与控制器设计",
+      "file": "7-fen-ceng-jie-gou-yu-kong-zhi-qi-she-ji.md",
+      "section": "深度解析",
+      "group": "后端架构",
+      "level": "Intermediate"
+    },
+    {
+      "slug": "8-an-quan-pei-zhi-yu-jwtren-zheng",
+      "title": "安全配置与JWT认证",
+      "file": "8-an-quan-pei-zhi-yu-jwtren-zheng.md",
+      "section": "深度解析",
+      "group": "后端架构",
+      "level": "Advanced"
+    },
+    {
+      "slug": "9-tong-yi-chang-chu-li-ji-zhi",
+      "title": "统一异常处理机制",
+      "file": "9-tong-yi-chang-chu-li-ji-zhi.md",
+      "section": "深度解析",
+      "group": "后端架构",
+      "level": "Advanced"
+    },
+    {
+      "slug": "10-he-xin-shi-ti-yu-guan-xi",
+      "title": "核心实体与关系",
+      "file": "10-he-xin-shi-ti-yu-guan-xi.md",
+      "section": "深度解析",
+      "group": "数据库设计",
+      "level": "Intermediate"
+    },
+    {
+      "slug": "11-chu-shi-hua-shu-ju-ce-lue",
+      "title": "初始化数据策略",
+      "file": "11-chu-shi-hua-shu-ju-ce-lue.md",
+      "section": "深度解析",
+      "group": "数据库设计",
+      "level": "Intermediate"
+    },
+    {
+      "slug": "12-jiao-se-mo-xing-yu-quan-xian-gui-ze",
+      "title": "角色模型与权限规则",
+      "file": "12-jiao-se-mo-xing-yu-quan-xian-gui-ze.md",
+      "section": "深度解析",
+      "group": "认证与权限",
+      "level": "Intermediate"
+    },
+    {
+      "slug": "13-jwtren-zheng-liu-cheng-shi-xian",
+      "title": "JWT认证流程实现",
+      "file": "13-jwtren-zheng-liu-cheng-shi-xian.md",
+      "section": "深度解析",
+      "group": "认证与权限",
+      "level": "Advanced"
+    },
+    {
+      "slug": "14-yong-hu-jiao-yi-bi-huan",
+      "title": "用户交易闭环",
+      "file": "14-yong-hu-jiao-yi-bi-huan.md",
+      "section": "深度解析",
+      "group": "核心业务流程",
+      "level": "Intermediate"
+    },
+    {
+      "slug": "15-xiao-xi-xie-tong-ji-zhi",
+      "title": "消息协同机制",
+      "file": "15-xiao-xi-xie-tong-ji-zhi.md",
+      "section": "深度解析",
+      "group": "核心业务流程",
+      "level": "Intermediate"
+    },
+    {
+      "slug": "16-guan-li-duan-jian-guan-liu-cheng",
+      "title": "管理端监管流程",
+      "file": "16-guan-li-duan-jian-guan-liu-cheng.md",
+      "section": "深度解析",
+      "group": "核心业务流程",
+      "level": "Intermediate"
+    },
+    {
+      "slug": "17-jie-kou-she-ji-can-kao",
+      "title": "接口设计参考",
+      "file": "17-jie-kou-she-ji-can-kao.md",
+      "section": "深度解析",
+      "level": "Intermediate"
+    },
+    {
+      "slug": "18-ce-shi-yu-xiang-mu-yan-zheng",
+      "title": "测试与项目验证",
+      "file": "18-ce-shi-yu-xiang-mu-yan-zheng.md",
+      "section": "深度解析",
+      "level": "Intermediate"
+    }
+  ]
+}
